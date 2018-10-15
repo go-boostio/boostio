@@ -1,3 +1,5 @@
+sudo: false
+
 language: go
 go_import_path: github.com/sbinet/boostio
 os:
@@ -6,10 +8,10 @@ os:
 env:
  - TAGS="-tags travis"
 
-cache:
- directories:
-   - $HOME/.cache/go-build
-   - $HOME/gopath/pkg/mod
+## cache:
+##  directories:
+##    - $HOME/.cache/go-build
+##    - $HOME/gopath/pkg/mod
 
 matrix:
  fast_finish: true
