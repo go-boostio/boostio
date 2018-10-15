@@ -44,8 +44,6 @@ func NewDecoder(r io.Reader) (*Decoder, error) {
 	return &d, nil
 }
 
-func (dec *Decoder) Err() error { return dec.err }
-
 func (dec *Decoder) Decode(ptr interface{}) error {
 	if dec.err != nil {
 		return dec.err
@@ -114,15 +112,12 @@ func (dec *Decoder) Decode(ptr interface{}) error {
 
 func (d *Decoder) readHeader() error {
 	v := d.ReadString()
-	if d.err != nil {
-		return d.err
-	}
 	if v != "serialization::archive" {
 		return errNotBoost
 	}
 	d.Header.Version = d.ReadU16()
 	d.Header.Flags = d.ReadU64()
-	return nil
+	return d.err
 }
 
 func (dec *Decoder) Read(p []byte) (int, error) {

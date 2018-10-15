@@ -100,6 +100,7 @@ int main()
   binary_oarchive oa{std::cout};
 
   oa 
+	<< std::string("hello")
 	<< false << true
 	<< int8_t(0x11)
 	<< int16_t(0x2222)
@@ -111,7 +112,6 @@ int main()
 	<< uint64_t(0x444444444444444)
 	<< float(2.2)
 	<< double(3.3)
-	<< std::string("hello")
 	<< std::array<uint8_t, 3>({0x11,0x22,0x33})
 	<< std::vector<uint8_t>({0x11,0x22,0x33,0xff})
 	;
