@@ -1,7 +1,7 @@
 sudo: false
 
 language: go
-go_import_path: github.com/sbinet/boostio
+go_import_path: github.com/go-boostio/boostio
 os:
   - linux
 

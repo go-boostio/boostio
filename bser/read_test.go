@@ -1,4 +1,4 @@
-// Copyright 2018 The boostio Authors.  All rights reserved.
+// Copyright 2018 The go-boostio Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sbinet/boostio/bser"
+	"github.com/go-boostio/boostio/bser"
 )
 
 func TestRead(t *testing.T) {

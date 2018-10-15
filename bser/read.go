@@ -1,10 +1,10 @@
-// Copyright 2018 The boostio Authors.  All rights reserved.
+// Copyright 2018 The go-boostio Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
 // Package bser provides types to read and write binary archives from the C++
 // Boost Serialization library.
-package bser // import "github.com/sbinet/boostio/bser"
+package bser // import "github.com/go-boostio/boostio/bser"
 
 //go:generate go run ./testdata/gen-binary-archive.go
 
