@@ -55,9 +55,14 @@ func main() {
 
 const src = `
 #include <boost/archive/binary_oarchive.hpp>
+#include <boost/serialization/array.hpp>
+#include <boost/serialization/vector.hpp>
 
 #include <iostream>
 #include <string>
+#include <vector>
+#include <array>
+
 #include <stdint.h>
 
 using namespace boost::archive;
@@ -107,6 +112,8 @@ int main()
 	<< float(2.2)
 	<< double(3.3)
 	<< std::string("hello")
+	<< std::array<uint8_t, 3>({0x11,0x22,0x33})
+	<< std::vector<uint8_t>({0x11,0x22,0x33,0xff})
 	;
 
   oa << animal("pet", 4, 1);

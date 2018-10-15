@@ -12,7 +12,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"log"
 	"math"
 	"reflect"
 
@@ -85,10 +84,27 @@ func (dec *Decoder) Decode(ptr interface{}) error {
 		/*flag*/ _ = dec.ReadU8()
 		rt := rv.Type()
 		for i := 0; i < rt.NumField(); i++ {
-			dec.err = dec.Decode(rv.Field(i).Addr().Interface())
-			if dec.err != nil {
-				return dec.err
-			}
+			dec.Decode(rv.Field(i).Addr().Interface())
+		}
+	case reflect.Slice:
+		n := dec.ReadU64()
+		if len, n := rv.Len(), int(n); len < n {
+			rv.Set(reflect.AppendSlice(rv, reflect.MakeSlice(rv.Type(), n-len, n)))
+		}
+		for i := 0; i < int(n); i++ {
+			e := rv.Index(i)
+			dec.Decode(e.Addr().Interface()) // FIXME(sbinet): do not go through Decode each time
+		}
+	case reflect.Array:
+		/*vers*/ _ = dec.ReadU32() // FIXME(sbinet): is it really the version?
+		/*flag*/ _ = dec.ReadU8() // FIXME(sbinet): is it really some flag?
+		n := int(dec.ReadU64())
+		if n != rv.Type().Len() {
+			return errors.Errorf("bser: invalid array type")
+		}
+		for i := 0; i < n; i++ {
+			e := rv.Index(i)
+			dec.Decode(e.Addr().Interface()) // FIXME(sbinet): do not go through Decode each time
 		}
 	default:
 		return fmt.Errorf("boost: invalid type %T", ptr)
@@ -106,7 +122,6 @@ func (d *Decoder) readHeader() error {
 	}
 	d.Header.Version = d.ReadU16()
 	d.Header.Flags = d.ReadU64()
-	log.Printf("header: %#v", d.Header)
 	return nil
 }
 

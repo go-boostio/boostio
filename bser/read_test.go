@@ -47,6 +47,8 @@ func TestRead(t *testing.T) {
 		{"float32", float32(2.2)},
 		{"float64", 3.3},
 		{"string", "hello"},
+		{"[3]uint8", [3]uint8{0x11, 0x22, 0x33}},
+		{"[]uint8", []uint8{0x11, 0x22, 0x33, 0xff}},
 		{"struct", animal{"pet", 4, 1}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
