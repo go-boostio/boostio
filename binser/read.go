@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package bser provides types to read and write binary archives from the C++
+// Package binser provides types to read and write binary archives from the C++
 // Boost Serialization library.
-package bser // import "github.com/go-boostio/boostio/bser"
+package binser // import "github.com/go-boostio/boostio/binser"
 
 //go:generate go run ./testdata/gen-binary-archive.go
 
@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	errNotBoost = errors.New("bser: not a Boost binary archive")
+	errNotBoost = errors.New("binser: not a Boost binary archive")
 )
 
 type Decoder struct {
@@ -100,7 +100,7 @@ func (dec *Decoder) Decode(ptr interface{}) error {
 		/*flag*/ _ = dec.ReadU8() // FIXME(sbinet): is it really some flag?
 		n := int(dec.ReadU64())
 		if n != rv.Type().Len() {
-			return errors.Errorf("bser: invalid array type")
+			return errors.Errorf("binser: invalid array type")
 		}
 		for i := 0; i < n; i++ {
 			e := rv.Index(i)

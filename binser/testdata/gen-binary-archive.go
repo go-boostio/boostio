@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	tmp, err := ioutil.TempDir("", "boostio-bser-")
+	tmp, err := ioutil.TempDir("", "boostio-binser-")
 	if err != nil {
 		log.Fatal(err)
 	}

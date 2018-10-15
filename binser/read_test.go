@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package bser_test
+package binser_test
 
 import (
 	"os"
 	"reflect"
 	"testing"
 
-	"github.com/go-boostio/boostio/bser"
+	"github.com/go-boostio/boostio/binser"
 )
 
 func TestRead(t *testing.T) {
@@ -25,7 +25,7 @@ func TestRead(t *testing.T) {
 	}
 	defer f.Close()
 
-	dec, err := bser.NewDecoder(f)
+	dec, err := binser.NewDecoder(f)
 	if err != nil {
 		t.Fatal(err)
 	}
