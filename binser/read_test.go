@@ -25,11 +25,7 @@ func TestRead(t *testing.T) {
 	}
 	defer f.Close()
 
-	dec, err := binser.NewDecoder(f)
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	dec := binser.NewDecoder(f)
 	for _, tc := range []struct {
 		name string
 		want interface{}

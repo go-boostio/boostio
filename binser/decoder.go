@@ -11,20 +11,22 @@ import (
 	"github.com/pkg/errors"
 )
 
+// A Decoder reads and decodes values from a Boost binary serialization stream.
 type Decoder struct {
 	r      *Reader
 	Header Header
 }
 
-func NewDecoder(r io.Reader) (*Decoder, error) {
+// NewDecoder returns a new decoder that reads from r.
+//
+// The decoder checks the stream has a correct Boost binary header.
+func NewDecoder(r io.Reader) *Decoder {
 	rr := NewReader(r)
-	d := Decoder{r: rr, Header: rr.readHeader()}
-	if d.r.err != nil {
-		return nil, d.r.err
-	}
-	return &d, nil
+	return &Decoder{r: rr, Header: rr.readHeader()}
 }
 
+// Decode reads the next value from its input and stores it in the
+// value pointed to by ptr.
 func (dec *Decoder) Decode(ptr interface{}) error {
 	if dec.r.err != nil {
 		return dec.r.err
