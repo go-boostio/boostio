@@ -237,3 +237,22 @@ func TestRBufferReader(t *testing.T) {
 		t.Fatalf("got=%q, want=%q", got, want)
 	}
 }
+
+func TestInvalidArray(t *testing.T) {
+	buf := new(bytes.Buffer)
+	enc := binser.NewEncoder(buf)
+	err := enc.Encode([3]int32{1, 2, 3})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	dec := binser.NewDecoder(buf)
+	var v [2]int32
+	err = dec.Decode(&v)
+	if err == nil {
+		t.Fatalf("expected an error!")
+	}
+	if got, want := err, binser.ErrInvalidArrayLen; !reflect.DeepEqual(got, want) {
+		t.Fatalf("got=%#v, want=%#v", got, want)
+	}
+}

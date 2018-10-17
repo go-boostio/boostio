@@ -20,6 +20,7 @@ var (
 	ErrNotBoost         = errors.New("binser: not a Boost binary archive")
 	ErrInvalidHeader    = errors.New("binser: invalid Boost binary archive header")
 	ErrInvalidTypeDescr = errors.New("binser: invalid Boost binary archive type descriptor")
+	ErrInvalidArrayLen  = errors.New("binser: invalid array type")
 )
 
 var (

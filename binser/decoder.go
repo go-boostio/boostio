@@ -81,7 +81,7 @@ func (dec *Decoder) Decode(ptr interface{}) error {
 		/*typ*/ _ = dec.r.ReadTypeDescr() // FIXME(sbinet): is it really the version?
 		n := int(dec.r.ReadU64())
 		if n != rv.Type().Len() {
-			return errors.Errorf("binser: invalid array type")
+			return ErrInvalidArrayLen
 		}
 		for i := 0; i < n; i++ {
 			e := rv.Index(i)
