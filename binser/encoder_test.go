@@ -8,7 +8,11 @@ import (
 	"bytes"
 	"encoding/hex"
 	"io"
+	"io/ioutil"
+	"log"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -141,4 +145,236 @@ func TestEncoderCompatWithBoost(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error closing output stream: %v", err)
 	}
+
+	tmp, err := ioutil.TempDir("", "boostio-binser-")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.RemoveAll(tmp)
+
+	fname := filepath.Join(tmp, "read.cxx")
+	err = ioutil.WriteFile(fname, []byte(boostReadSrc), 0644)
+	if err != nil {
+		log.Fatalf("could not generate C++ source file: %v", err)
+	}
+
+	cmd := exec.Command("c++", "-std=c++11", "-lboost_serialization", "-o", "bread", "read.cxx")
+	cmd.Dir = tmp
+	err = cmd.Run()
+	if err != nil {
+		t.Skipf("could not compile C++ Boost")
+		os.Remove(f.Name())
+		return
+	}
+
+	archive, err := ioutil.ReadFile(f.Name())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	out := new(bytes.Buffer)
+	cmd = exec.Command(filepath.Join(tmp, "bread"))
+	cmd.Stdin = bytes.NewReader(archive)
+	cmd.Stdout = out
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	if err != nil {
+		t.Fatalf("error reading back boost archive: %v\n%s", err, out.Bytes())
+	}
+	want := `bool: 0
+bool: 1
+int8_t: 0x11
+int16_t: 0x2222
+int32_t: 0x33333333
+int64_t: 0x44444444
+uint8_t: 0xff
+uint16_t: 0x2222
+uint32_t: 0x3333333
+uint64_t: 0x44444444
+float32: 2.2
+float64: 3.3
+[3]uint8: {0x11, 0x22, 0x33, }
+[]uint8: {0x11, 0x22, 0x33, 0xff, }
+[]uint8: {68, 65, 6c, 6c, 6f, }
+string: "hello"
+map: {{drei: trois}, {eins: un}, {zwei: deux}, }
+animal: {name: pet, legs: 4, tails: 1}
+animal: {name: pet, legs: 4, tails: 1}
+`
+	if got, want := out.Bytes(), []byte(want); !bytes.Equal(got, want) {
+		t.Fatalf("output differs:\ngot:\n%s\nwant:%s\n", got, want)
+	}
+
+	os.Remove(f.Name())
 }
+
+const boostReadSrc = `
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/serialization/array.hpp>
+#include <boost/serialization/map.hpp>
+#include <boost/serialization/vector.hpp>
+
+#include <iostream>
+#include <string>
+#include <vector>
+#include <array>
+
+#include <stdint.h>
+
+using namespace boost::archive;
+
+class animal {
+public:
+	animal(std::string name = "pet", int legs=4, int tails=2) 
+		: m_name("pet")
+		, m_legs(legs)
+		, m_tails(tails)
+	{}
+
+	std::string name()  const { return m_name; }
+	int			legs()  const { return m_legs; }
+	int			tails() const { return m_tails; }
+
+private:
+
+	friend class boost::serialization::access;
+
+	template <typename Archive>
+	void serialize(Archive &ar, const unsigned int version) {
+		ar & m_name;
+		ar & m_legs;
+		ar & m_tails;
+	}
+
+	std::string m_name;
+	int16_t		m_legs;
+	int8_t		m_tails;
+};
+
+int main()
+{
+  binary_iarchive ia{std::cin};
+
+  {
+	bool v;
+	ia >> v;
+	std::cout << "bool: " << v << "\n";
+  }
+
+  {
+	bool v;
+	ia >> v;
+	std::cout << "bool: " << v << "\n";
+  }
+
+  {
+	int8_t v;
+	ia >> v;
+	std::printf("int8_t: 0x%x\n", v);
+  }
+
+  {
+	int16_t v;
+	ia >> v;
+	std::printf("int16_t: 0x%x\n", v);
+  }
+
+  {
+	int32_t v;
+	ia >> v;
+	std::printf("int32_t: 0x%x\n", v);
+  }
+
+  {
+	int64_t v;
+	ia >> v;
+	std::printf("int64_t: 0x%x\n", v);
+  }
+
+  {
+	uint8_t v;
+	ia >> v;
+	std::printf("uint8_t: 0x%x\n", v);
+  }
+
+  {
+	uint16_t v;
+	ia >> v;
+	std::printf("uint16_t: 0x%x\n", v);
+  }
+
+  {
+	uint32_t v;
+	ia >> v;
+	std::printf("uint32_t: 0x%x\n", v);
+  }
+
+  {
+	uint64_t v;
+	ia >> v;
+	std::printf("uint64_t: 0x%x\n", v);
+  }
+
+  {
+	float v;
+	ia >> v;
+	std::printf("float32: %1.1f\n", v);
+  }
+
+  {
+	double v;
+	ia >> v;
+	std::printf("float64: %1.1f\n", v);
+  }
+
+  {
+    std::array<uint8_t, 3> v;
+	ia >> v;
+	std::cout << "[3]uint8: {";
+	for (auto i : v) { std::printf("0x%x, ", i); }
+	std::cout << "}\n";
+  }
+
+  {
+    std::vector<uint8_t> v;
+	ia >> v;
+	std::cout << "[]uint8: {";
+	for (auto i : v) { std::printf("0x%x, ", i); }
+	std::cout << "}\n";
+  }
+
+  {
+    std::vector<uint8_t> v;
+	ia >> v;
+	std::cout << "[]uint8: {";
+	for (auto i : v) { std::printf("%x, ", i); }
+	std::cout << "}\n";
+  }
+
+  {
+    std::string v;
+	ia >> v;
+	std::cout << "string: \"" << v << "\"\n";
+  }
+
+  {
+	std::map<std::string, std::string> v;
+	ia >> v;
+	std::cout << "map: {";
+	for (const auto &kv : v) { std::cout << "{" <<kv.first << ": " << kv.second << "}, "; } 
+	std::cout << "}\n";
+  }
+
+  {
+	  animal v;
+	  ia >> v;
+	  std::cout << "animal: {name: " << v.name() << ", legs: " << v.legs() << ", tails: " << v.tails() << "}\n";
+  }
+
+  {
+	  animal v;
+	  ia >> v;
+	  std::cout << "animal: {name: " << v.name() << ", legs: " << v.legs() << ", tails: " << v.tails() << "}\n";
+  }
+}
+`

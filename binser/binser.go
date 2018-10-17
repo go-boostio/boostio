@@ -9,6 +9,8 @@ package binser // import "github.com/go-boostio/boostio/binser"
 //go:generate go run ./testdata/gen-binary-archive.go
 
 import (
+	"encoding/binary"
+
 	"github.com/pkg/errors"
 )
 
@@ -26,7 +28,14 @@ var (
 
 var (
 	zeroHdr Header
-	bserHdr = Header{Version: 0x11, Flags: 0}
+	bserHdr = Header{
+		Version: 0x11,
+		Flags: binary.LittleEndian.Uint64([]byte{
+			0x4, 0x8, // size of int
+			0x4, 0x8, // size of uint
+			0x1, 0x0, 0x0, 0x0,
+		}),
+	}
 )
 
 // Unmarshaler is the interface implemented by types that can unmarshal a binary
