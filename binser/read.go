@@ -48,6 +48,16 @@ func (r *Reader) ReadHeader() Header {
 	return hdr
 }
 
+func (r *Reader) ReadTypeDescr() TypeDescr {
+	var dtype TypeDescr
+	if r.err != nil {
+		return dtype
+	}
+	dtype.Version = r.ReadU32()
+	dtype.Flags = r.ReadU8()
+	return dtype
+}
+
 func (r *Reader) Read(p []byte) (int, error) {
 	if r.err != nil {
 		return 0, r.err

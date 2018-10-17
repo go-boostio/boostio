@@ -155,8 +155,7 @@ type animal struct {
 }
 
 func (a *animal) UnmarshalBoost(r *binser.Reader) error {
-	/*vers*/ _ = r.ReadU32()
-	/*flag*/ _ = r.ReadU8()
+	/*typ*/ _ = r.ReadTypeDescr()
 	a.Name = r.ReadString()
 	a.Legs = r.ReadI16()
 	a.Tails = r.ReadI8()

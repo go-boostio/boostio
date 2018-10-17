@@ -63,8 +63,7 @@ func (dec *Decoder) Decode(ptr interface{}) error {
 	case reflect.String:
 		rv.SetString(dec.r.ReadString())
 	case reflect.Struct:
-		/*vers*/ _ = dec.r.ReadU32()
-		/*flag*/ _ = dec.r.ReadU8()
+		/*typ*/ _ = dec.r.ReadTypeDescr()
 		rt := rv.Type()
 		for i := 0; i < rt.NumField(); i++ {
 			dec.Decode(rv.Field(i).Addr().Interface())
@@ -79,8 +78,7 @@ func (dec *Decoder) Decode(ptr interface{}) error {
 			dec.Decode(e.Addr().Interface()) // FIXME(sbinet): do not go through Decode each time
 		}
 	case reflect.Array:
-		/*vers*/ _ = dec.r.ReadU32() // FIXME(sbinet): is it really the version?
-		/*flag*/ _ = dec.r.ReadU8() // FIXME(sbinet): is it really some flag?
+		/*typ*/ _ = dec.r.ReadTypeDescr() // FIXME(sbinet): is it really the version?
 		n := int(dec.r.ReadU64())
 		if n != rv.Type().Len() {
 			return errors.Errorf("binser: invalid array type")
@@ -90,8 +88,7 @@ func (dec *Decoder) Decode(ptr interface{}) error {
 			dec.Decode(e.Addr().Interface()) // FIXME(sbinet): do not go through Decode each time
 		}
 	case reflect.Map:
-		/*vers*/ _ = dec.r.ReadU32() // FIXME(sbinet): is it really the version?
-		/*flag*/ _ = dec.r.ReadU8() // FIXME(sbinet): is it really some flag?
+		/*typ*/ _ = dec.r.ReadTypeDescr() // FIXME(sbinet): is it really the version?
 		n := int(dec.r.ReadU64())
 		_ = dec.r.ReadU64() // FIXME(sbinet): what is this ?
 		_ = dec.r.ReadU8()  // FIXME(sbinet): ditto ?

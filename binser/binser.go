@@ -23,6 +23,12 @@ type Header struct {
 	Flags   uint64
 }
 
+// TypeDescr describes an on-disk binary boost archive type.
+type TypeDescr struct {
+	Version uint32
+	Flags   uint8
+}
+
 // Unmarshaler is the interface implemented by types that can unmarshal a binary
 // Boost description of themselves.
 type Unmarshaler interface {
