@@ -35,6 +35,8 @@ func (dec *Decoder) Decode(ptr interface{}) error {
 	}
 
 	rv := reflect.Indirect(reflect.ValueOf(ptr))
+	rt := rv.Type()
+
 	switch rv.Kind() {
 	case reflect.Bool:
 		rv.SetBool(dec.r.ReadBool())
@@ -61,7 +63,7 @@ func (dec *Decoder) Decode(ptr interface{}) error {
 	case reflect.String:
 		rv.SetString(dec.r.ReadString())
 	case reflect.Struct:
-		/*typ*/ _ = dec.r.ReadTypeDescr()
+		/*typ*/ _ = dec.r.ReadTypeDescr(rt)
 		rt := rv.Type()
 		for i := 0; i < rt.NumField(); i++ {
 			dec.Decode(rv.Field(i).Addr().Interface())
@@ -76,7 +78,7 @@ func (dec *Decoder) Decode(ptr interface{}) error {
 			dec.Decode(e.Addr().Interface()) // FIXME(sbinet): do not go through Decode each time
 		}
 	case reflect.Array:
-		/*typ*/ _ = dec.r.ReadTypeDescr() // FIXME(sbinet): is it really the version?
+		/*typ*/ _ = dec.r.ReadTypeDescr(rt)
 		n := int(dec.r.ReadU64())
 		if n != rv.Type().Len() {
 			return ErrInvalidArrayLen
@@ -86,7 +88,7 @@ func (dec *Decoder) Decode(ptr interface{}) error {
 			dec.Decode(e.Addr().Interface()) // FIXME(sbinet): do not go through Decode each time
 		}
 	case reflect.Map:
-		/*typ*/ _ = dec.r.ReadTypeDescr() // FIXME(sbinet): is it really the version?
+		/*typ*/ _ = dec.r.ReadTypeDescr(rt)
 		n := int(dec.r.ReadU64())
 		_ = dec.r.ReadU64() // FIXME(sbinet): what is this ?
 		_ = dec.r.ReadU8()  // FIXME(sbinet): ditto ?

@@ -8,16 +8,23 @@ import (
 	"encoding/binary"
 	"io"
 	"math"
+	"reflect"
 )
 
 type WBuffer struct {
 	w   io.Writer
 	err error
 	buf []byte
+
+	types map[reflect.Type]TypeDescr
 }
 
 func NewWBuffer(w io.Writer) *WBuffer {
-	return &WBuffer{w: w, buf: make([]byte, 8)}
+	return &WBuffer{
+		w:     w,
+		buf:   make([]byte, 8),
+		types: make(map[reflect.Type]TypeDescr),
+	}
 }
 
 func (w *WBuffer) Err() error { return w.err }
@@ -27,7 +34,13 @@ func (w *WBuffer) WriteHeader(hdr Header) error {
 	return w.err
 }
 
-func (w *WBuffer) WriteTypeDescr(dt TypeDescr) error {
+func (w *WBuffer) WriteTypeDescr(rt reflect.Type) error {
+	dt, ok := w.types[rt]
+	if ok {
+		return nil
+	}
+	dt = TypeDescr{Version: 0, Flags: 0}
+	w.types[rt] = dt
 	w.err = dt.MarshalBoost(w)
 	return w.err
 }

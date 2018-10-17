@@ -70,8 +70,8 @@ func (enc *Encoder) Encode(v interface{}) error {
 	case reflect.String:
 		enc.w.WriteString(rv.String())
 	case reflect.Struct:
-		enc.w.WriteTypeDescr(TypeDescr{})
 		rt := rv.Type()
+		enc.w.WriteTypeDescr(rt)
 		for i := 0; i < rt.NumField(); i++ {
 			enc.Encode(rv.Field(i).Interface())
 		}
@@ -83,7 +83,8 @@ func (enc *Encoder) Encode(v interface{}) error {
 			enc.Encode(e.Interface()) // FIXME(sbinet): do not go through Decode each time
 		}
 	case reflect.Array:
-		enc.w.WriteTypeDescr(TypeDescr{}) // FIXME(sbinet): is it really the version?
+		rt := rv.Type()
+		enc.w.WriteTypeDescr(rt)
 		n := int(rv.Len())
 		enc.w.WriteU64(uint64(n))
 		for i := 0; i < n; i++ {
@@ -91,7 +92,8 @@ func (enc *Encoder) Encode(v interface{}) error {
 			enc.Encode(e.Interface()) // FIXME(sbinet): do not go through Decode each time
 		}
 	case reflect.Map:
-		enc.w.WriteTypeDescr(TypeDescr{}) // FIXME(sbinet): is it really the version?
+		rt := rv.Type()
+		enc.w.WriteTypeDescr(rt)
 		enc.w.WriteU64(uint64(rv.Len()))
 		enc.w.WriteU64(0) // FIXME(sbinet): what is this ?
 		enc.w.WriteU8(0)  // FIXME(sbinet): ditto ?

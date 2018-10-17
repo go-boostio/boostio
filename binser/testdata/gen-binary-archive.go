@@ -120,5 +120,6 @@ int main()
 	;
 
   oa << animal("pet", 4, 1);
+  oa << animal("pet", 4, 1);
 }
 `

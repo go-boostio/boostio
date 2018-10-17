@@ -22,29 +22,7 @@ func TestDecoder(t *testing.T) {
 	defer f.Close()
 
 	dec := binser.NewDecoder(f)
-	for _, tc := range []struct {
-		name string
-		want interface{}
-	}{
-		{"bool-false", false},
-		{"bool-true", true},
-		{"int8", int8(0x11)},
-		{"int16", int16(0x2222)},
-		{"int32", int32(0x33333333)},
-		{"int64", int64(0x4444444444444444)},
-		{"uint8", uint8(0xff)},
-		{"uint16", uint16(0x2222)},
-		{"uint32", uint32(0x3333333)},
-		{"uint64", uint64(0x444444444444444)},
-		{"float32", float32(2.2)},
-		{"float64", 3.3},
-		{"[3]uint8", [3]uint8{0x11, 0x22, 0x33}},
-		{"[]uint8", []uint8{0x11, 0x22, 0x33, 0xff}},
-		{"[]byte", []byte("hello")},
-		{"string", "hello"},
-		{"map[string]string", map[string]string{"eins": "un", "zwei": "deux", "drei": "trois"}},
-		{"struct", animal{"pet", 4, 1}},
-	} {
+	for _, tc := range typeTestCases {
 		t.Run(tc.name, func(t *testing.T) {
 			rv := reflect.New(reflect.TypeOf(tc.want)).Elem()
 			if rv.Kind() == reflect.Map {
@@ -154,9 +132,12 @@ type manimal struct {
 	tails int8
 }
 
+var (
+	animalType = reflect.TypeOf((*animal)(nil)).Elem()
+)
+
 func (a manimal) MarshalBoost(w *binser.WBuffer) error {
-	var dtype binser.TypeDescr
-	dtype.MarshalBoost(w)
+	w.WriteTypeDescr(animalType) // use same type as animal.
 	w.WriteString(a.name)
 	w.WriteI16(a.legs)
 	w.WriteI8(a.tails)
@@ -164,8 +145,7 @@ func (a manimal) MarshalBoost(w *binser.WBuffer) error {
 }
 
 func (a *manimal) UnmarshalBoost(r *binser.RBuffer) error {
-	var dtype binser.TypeDescr
-	dtype.UnmarshalBoost(r)
+	r.ReadTypeDescr(animalType) // use same type as animal.
 	a.name = r.ReadString()
 	a.legs = r.ReadI16()
 	a.tails = r.ReadI8()
@@ -176,53 +156,6 @@ var (
 	_ binser.Unmarshaler = (*manimal)(nil)
 	_ binser.Marshaler   = (*manimal)(nil)
 )
-
-func TestUnmarshaler(t *testing.T) {
-	f, err := os.Open("testdata/data.bin")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer f.Close()
-
-	dec := binser.NewDecoder(f)
-	for _, tc := range []struct {
-		name string
-		want interface{}
-	}{
-		{"bool-false", false},
-		{"bool-true", true},
-		{"int8", int8(0x11)},
-		{"int16", int16(0x2222)},
-		{"int32", int32(0x33333333)},
-		{"int64", int64(0x4444444444444444)},
-		{"uint8", uint8(0xff)},
-		{"uint16", uint16(0x2222)},
-		{"uint32", uint32(0x3333333)},
-		{"uint64", uint64(0x444444444444444)},
-		{"float32", float32(2.2)},
-		{"float64", 3.3},
-		{"[3]uint8", [3]uint8{0x11, 0x22, 0x33}},
-		{"[]uint8", []uint8{0x11, 0x22, 0x33, 0xff}},
-		{"[]byte", []byte("hello")},
-		{"string", "hello"},
-		{"map[string]string", map[string]string{"eins": "un", "zwei": "deux", "drei": "trois"}},
-		{"struct", manimal{"pet", 4, 1}},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			rv := reflect.New(reflect.TypeOf(tc.want)).Elem()
-			if rv.Kind() == reflect.Map {
-				rv.Set(reflect.MakeMap(rv.Type()))
-			}
-			err := dec.Decode(rv.Addr().Interface())
-			if err != nil {
-				t.Fatalf("could not read %q: %v", tc.name, err)
-			}
-			if got, want := rv.Interface(), tc.want; !reflect.DeepEqual(got, want) {
-				t.Fatalf("got=%#v (%T)\nwant=%#v (%T)", got, got, want, want)
-			}
-		})
-	}
-}
 
 func TestRBufferReader(t *testing.T) {
 	want := []byte("hello")

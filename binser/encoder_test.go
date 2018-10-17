@@ -8,18 +8,19 @@ import (
 	"bytes"
 	"encoding/hex"
 	"io"
+	"os"
 	"reflect"
 	"testing"
 
 	"github.com/go-boostio/boostio/binser"
 )
 
-var encoderTestCases = []struct {
+var typeTestCases = []struct {
 	name string
 	want interface{}
 }{
-	{"bool-true", true},
 	{"bool-false", false},
+	{"bool-true", true},
 	{"int8", int8(0x11)},
 	{"int16", int16(0x2222)},
 	{"int32", int32(0x33333333)},
@@ -46,7 +47,7 @@ func TestEncoder(t *testing.T) {
 		Tails int8
 	}
 
-	for _, tc := range encoderTestCases {
+	for _, tc := range typeTestCases {
 		t.Run(tc.name, func(t *testing.T) {
 			var (
 				buf = new(bytes.Buffer)
@@ -82,7 +83,7 @@ type errWriter struct{}
 func (errWriter) Write(p []byte) (int, error) { return 0, io.ErrUnexpectedEOF }
 
 func TestEncoderError(t *testing.T) {
-	for _, tc := range encoderTestCases {
+	for _, tc := range typeTestCases {
 		t.Run(tc.name, func(t *testing.T) {
 			enc := binser.NewEncoder(errWriter{})
 			err := enc.Encode(tc.want)
@@ -118,5 +119,26 @@ func TestEncoderInvalidType(t *testing.T) {
 
 	if got, want := err, binser.ErrTypeNotSupported; !reflect.DeepEqual(got, want) {
 		t.Fatalf("got=%#v, want=%#v", got, want)
+	}
+}
+
+func TestEncoderCompatWithBoost(t *testing.T) {
+	f, err := os.Create("testdata/check.bin")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+
+	enc := binser.NewEncoder(f)
+	for _, tc := range typeTestCases {
+		err := enc.Encode(tc.want)
+		if err != nil {
+			t.Fatalf("error encoding %q: %v", tc.name, err)
+		}
+	}
+
+	err = f.Close()
+	if err != nil {
+		t.Fatalf("error closing output stream: %v", err)
 	}
 }

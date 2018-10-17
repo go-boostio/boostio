@@ -8,6 +8,7 @@ import (
 	"encoding/binary"
 	"io"
 	"math"
+	"reflect"
 )
 
 // A RBuffer reads values from a Boost binary serialization stream.
@@ -15,11 +16,17 @@ type RBuffer struct {
 	r   io.Reader
 	err error
 	buf []byte
+
+	types map[reflect.Type]TypeDescr
 }
 
 // NewRBuffer returns a new read-only buffer that reads from r.
 func NewRBuffer(r io.Reader) *RBuffer {
-	return &RBuffer{r: r, buf: make([]byte, 8)}
+	return &RBuffer{
+		r:     r,
+		buf:   make([]byte, 8),
+		types: make(map[reflect.Type]TypeDescr),
+	}
 }
 
 func (r *RBuffer) Err() error { return r.err }
@@ -48,10 +55,17 @@ func (r *RBuffer) ReadHeader() Header {
 	return hdr
 }
 
-func (r *RBuffer) ReadTypeDescr() TypeDescr {
+func (r *RBuffer) ReadTypeDescr(typ reflect.Type) TypeDescr {
+	if dtype, ok := r.types[typ]; ok {
+		return dtype
+	}
+
 	var dtype TypeDescr
 	dtype.UnmarshalBoost(r)
-	if r.err != nil {
+	switch r.err {
+	case nil:
+		r.types[typ] = dtype
+	default:
 		r.err = ErrInvalidTypeDescr
 	}
 	return dtype
