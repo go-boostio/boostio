@@ -4,6 +4,19 @@
 
 // Package binser provides types to read and write binary archives from the C++
 // Boost Serialization library.
+//
+// Writing values to an output binary archive can be done like so:
+//
+//  enc := binser.NewEncoder(w)
+//  err := enc.Encode("hello")
+//
+// And reading values from an input binary archive:
+//
+//  dec := binser.NewDecoder(r)
+//  str := ""
+//  err := dec.Decode(&str)
+//
+// For more informations, look at the examples for Encoder, Decoder and read/write Buffer.
 package binser // import "github.com/go-boostio/boostio/binser"
 
 //go:generate go run ./testdata/gen-binary-archive.go

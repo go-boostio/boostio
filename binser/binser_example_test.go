@@ -5,6 +5,8 @@
 package binser_test
 
 import (
+	"bytes"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"os"
@@ -85,4 +87,42 @@ func ExampleRBuffer() {
 	// uint64: 0x444444444444444
 	// float32: 2.2
 	// float64: 3.3
+}
+
+func ExampleEncoder() {
+	buf := new(bytes.Buffer)
+	enc := binser.NewEncoder(buf)
+
+	for _, v := range []interface{}{"hello", int32(0x44444444)} {
+		err := enc.Encode(v)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	fmt.Printf("%s\n", hex.Dump(buf.Bytes()))
+
+	dec := binser.NewDecoder(buf)
+	var str = ""
+	err := dec.Decode(&str)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("string: %s\n", str)
+
+	var i32 int32
+	err = dec.Decode(&i32)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("int32:  %#x\n", i32)
+
+	// Output:
+	// 00000000  16 00 00 00 00 00 00 00  73 65 72 69 61 6c 69 7a  |........serializ|
+	// 00000010  61 74 69 6f 6e 3a 3a 61  72 63 68 69 76 65 11 00  |ation::archive..|
+	// 00000020  04 08 04 08 01 00 00 00  05 00 00 00 00 00 00 00  |................|
+	// 00000030  68 65 6c 6c 6f 44 44 44  44                       |helloDDDD|
+	//
+	// string: hello
+	// int32:  0x44444444
 }
