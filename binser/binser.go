@@ -16,6 +16,8 @@ import (
 
 const (
 	magicHeader = "serialization::archive"
+
+	Version uint16 = 0x11 // Boost archive version
 )
 
 var (
@@ -29,7 +31,7 @@ var (
 var (
 	zeroHdr Header
 	bserHdr = Header{
-		Version: 0x11,
+		Version: Version,
 		Flags: binary.LittleEndian.Uint64([]byte{
 			0x4, 0x8, // size of int
 			0x4, 0x8, // size of uint
