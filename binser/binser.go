@@ -13,7 +13,8 @@ import (
 )
 
 var (
-	errNotBoost = errors.New("binser: not a Boost binary archive")
+	ErrNotBoost      = errors.New("binser: not a Boost binary archive")
+	ErrInvalidHeader = errors.New("binser: invalid Boost binary archive header")
 )
 
 // Header describes a binary boost archive.

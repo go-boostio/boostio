@@ -5,6 +5,8 @@
 package binser_test
 
 import (
+	"bytes"
+	"io"
 	"os"
 	"reflect"
 	"testing"
@@ -60,6 +62,87 @@ func TestRead(t *testing.T) {
 			}
 			if got, want := rv.Interface(), tc.want; !reflect.DeepEqual(got, want) {
 				t.Fatalf("got=%#v (%T)\nwant=%#v (%T)", got, got, want, want)
+			}
+		})
+	}
+}
+
+func TestInvalidArchive(t *testing.T) {
+	for _, tc := range []struct {
+		raw []byte
+		err error
+		val interface{}
+	}{
+		{
+			raw: nil,
+			err: binser.ErrNotBoost,
+		},
+		{
+			raw: []byte("boost"),
+			err: binser.ErrNotBoost,
+		},
+		{
+			raw: []byte{5, 0, 0, 0, 0, 0, 0, 0, 'b', 'o', 'o', 's', 't'},
+			err: binser.ErrNotBoost,
+		},
+		{
+			raw: []byte{
+				0x16, 0, 0, 0, 0, 0, 0, 0,
+				's', 'e', 'r', 'i', 'a', 'l', 'i', 'z', 'a', 't', 'i', 'o', 'n',
+				':', ':',
+				'a', 'r', 'c', 'h', 'i', 'v', 'e',
+			},
+			err: binser.ErrInvalidHeader,
+		},
+		{
+			raw: []byte{
+				0x16, 0, 0, 0, 0, 0, 0, 0,
+				's', 'e', 'r', 'i', 'a', 'l', 'i', 'z', 'a', 't', 'i', 'o', 'n',
+				':', ':',
+				'a', 'r', 'c', 'h', 'i', 'v', 'e',
+				0,
+			},
+			err: binser.ErrInvalidHeader,
+		},
+		{
+			raw: []byte{
+				0x16, 0, 0, 0, 0, 0, 0, 0,
+				's', 'e', 'r', 'i', 'a', 'l', 'i', 'z', 'a', 't', 'i', 'o', 'n',
+				':', ':',
+				'a', 'r', 'c', 'h', 'i', 'v', 'e',
+				1, 0,
+			},
+			err: binser.ErrInvalidHeader,
+		},
+		{
+			raw: []byte{
+				0x16, 0, 0, 0, 0, 0, 0, 0,
+				's', 'e', 'r', 'i', 'a', 'l', 'i', 'z', 'a', 't', 'i', 'o', 'n',
+				':', ':',
+				'a', 'r', 'c', 'h', 'i', 'v', 'e',
+				1, 0,
+				0,
+			},
+			err: binser.ErrInvalidHeader,
+		},
+		{
+			raw: []byte{
+				0x16, 0, 0, 0, 0, 0, 0, 0,
+				's', 'e', 'r', 'i', 'a', 'l', 'i', 'z', 'a', 't', 'i', 'o', 'n',
+				':', ':',
+				'a', 'r', 'c', 'h', 'i', 'v', 'e',
+				1, 0,
+				1, 0, 0, 0, 0, 0, 0, 0, 1,
+			},
+			err: io.ErrUnexpectedEOF,
+			val: new(uint16),
+		},
+	} {
+		t.Run("", func(t *testing.T) {
+			dec := binser.NewDecoder(bytes.NewReader(tc.raw))
+			err := dec.Decode(tc.val)
+			if !reflect.DeepEqual(err, tc.err) {
+				t.Fatalf("got=%#v, want=%#v", err, tc.err)
 			}
 		})
 	}

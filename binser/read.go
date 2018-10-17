@@ -26,17 +26,25 @@ func (r *Reader) Err() error { return r.err }
 
 func (r *Reader) readHeader() Header {
 	var hdr Header
+	if r.r == nil {
+		r.err = ErrNotBoost
+		return hdr
+	}
+
 	if r.err != nil {
 		return hdr
 	}
 
 	v := r.ReadString()
 	if v != "serialization::archive" {
-		r.err = errNotBoost
+		r.err = ErrNotBoost
 		return hdr
 	}
 	hdr.Version = r.ReadU16()
 	hdr.Flags = r.ReadU64()
+	if r.err != nil {
+		r.err = ErrInvalidHeader
+	}
 	return hdr
 }
 
