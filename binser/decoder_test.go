@@ -15,12 +15,6 @@ import (
 )
 
 func TestDecoder(t *testing.T) {
-	type animal struct {
-		Name  string
-		Legs  int16
-		Tails int8
-	}
-
 	f, err := os.Open("testdata/data.bin")
 	if err != nil {
 		t.Fatal(err)
@@ -148,6 +142,12 @@ func TestInvalidArchive(t *testing.T) {
 	}
 }
 
+type animal struct {
+	Name  string
+	Legs  int16
+	Tails int8
+}
+
 type manimal struct {
 	name  string
 	legs  int16
@@ -221,5 +221,19 @@ func TestUnmarshaler(t *testing.T) {
 				t.Fatalf("got=%#v (%T)\nwant=%#v (%T)", got, got, want, want)
 			}
 		})
+	}
+}
+
+func TestRBufferReader(t *testing.T) {
+	want := []byte("hello")
+	r := binser.NewRBuffer(bytes.NewReader(want))
+	got := make([]byte, len(want))
+	n, err := r.Read(got)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got = got[:n]
+	if !bytes.Equal(got, want) {
+		t.Fatalf("got=%q, want=%q", got, want)
 	}
 }
