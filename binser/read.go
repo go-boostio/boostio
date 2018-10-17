@@ -10,12 +10,14 @@ import (
 	"math"
 )
 
+// A Reader reads values from a Boost binary serialization stream.
 type Reader struct {
 	r   io.Reader
 	err error
 	buf []byte
 }
 
+// NewReader returns a new reader that reads from r.
 func NewReader(r io.Reader) *Reader {
 	return &Reader{r: r, buf: make([]byte, 8)}
 }
