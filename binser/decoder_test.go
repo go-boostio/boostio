@@ -148,19 +148,34 @@ func TestInvalidArchive(t *testing.T) {
 	}
 }
 
-type animal struct {
-	Name  string
-	Legs  int16
-	Tails int8
+type manimal struct {
+	name  string
+	legs  int16
+	tails int8
 }
 
-func (a *animal) UnmarshalBoost(r *binser.RBuffer) error {
-	/*typ*/ _ = r.ReadTypeDescr()
-	a.Name = r.ReadString()
-	a.Legs = r.ReadI16()
-	a.Tails = r.ReadI8()
+func (a manimal) MarshalBoost(w *binser.WBuffer) error {
+	var dtype binser.TypeDescr
+	dtype.MarshalBoost(w)
+	w.WriteString(a.name)
+	w.WriteI16(a.legs)
+	w.WriteI8(a.tails)
+	return w.Err()
+}
+
+func (a *manimal) UnmarshalBoost(r *binser.RBuffer) error {
+	var dtype binser.TypeDescr
+	dtype.UnmarshalBoost(r)
+	a.name = r.ReadString()
+	a.legs = r.ReadI16()
+	a.tails = r.ReadI8()
 	return r.Err()
 }
+
+var (
+	_ binser.Unmarshaler = (*manimal)(nil)
+	_ binser.Marshaler   = (*manimal)(nil)
+)
 
 func TestUnmarshaler(t *testing.T) {
 	f, err := os.Open("testdata/data.bin")
@@ -191,7 +206,7 @@ func TestUnmarshaler(t *testing.T) {
 		{"[]byte", []byte("hello")},
 		{"string", "hello"},
 		{"map[string]string", map[string]string{"eins": "un", "zwei": "deux", "drei": "trois"}},
-		{"struct", animal{"pet", 4, 1}},
+		{"struct", manimal{"pet", 4, 1}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			rv := reflect.New(reflect.TypeOf(tc.want)).Elem()
