@@ -31,9 +31,11 @@ func (dec *Decoder) Decode(ptr interface{}) error {
 	if dec.r.err != nil {
 		return dec.r.err
 	}
-	//	if v, ok := ptr.(encoding.BinaryUnmarshaling); ok {
-	//		_, dec.err =
-	//	}
+
+	if v, ok := ptr.(Unmarshaler); ok {
+		return v.UnmarshalBoost(dec.r)
+	}
+
 	rv := reflect.Indirect(reflect.ValueOf(ptr))
 	switch rv.Kind() {
 	case reflect.Bool:

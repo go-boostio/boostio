@@ -22,6 +22,8 @@ func NewReader(r io.Reader) *Reader {
 	return &Reader{r: r, buf: make([]byte, 8)}
 }
 
+func (r *Reader) Err() error { return r.err }
+
 func (r *Reader) readHeader() Header {
 	var hdr Header
 	if r.err != nil {
