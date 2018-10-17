@@ -7,12 +7,15 @@ package binser
 import (
 	"io"
 	"reflect"
+	"sync"
 )
 
 // An Encoder writes and encodes values to a Boost binary serialization stream.
 type Encoder struct {
 	w      *WBuffer
 	Header Header
+
+	hdr sync.Once
 }
 
 // NewEncoder returns a new encoder that writes to w.
@@ -24,19 +27,20 @@ func NewEncoder(w io.Writer) *Encoder {
 	return &Encoder{w: ww}
 }
 
-// Encode write the value v to its output.
-func (enc *Encoder) Encode(v interface{}) error {
-	if enc.w.err != nil {
-		return enc.w.err
-	}
-
+func (enc *Encoder) writeHeader() {
 	if enc.Header == zeroHdr {
 		enc.Header = bserHdr
-		enc.w.WriteString(magicHeader)
-		enc.w.WriteHeader(enc.Header)
-		if enc.w.err != nil {
-			return enc.w.err
-		}
+	}
+
+	enc.w.WriteString(magicHeader)
+	enc.w.WriteHeader(enc.Header)
+}
+
+// Encode write the value v to its output.
+func (enc *Encoder) Encode(v interface{}) error {
+	enc.hdr.Do(enc.writeHeader)
+	if enc.w.err != nil {
+		return enc.w.err
 	}
 
 	if v, ok := v.(Marshaler); ok {
