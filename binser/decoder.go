@@ -22,7 +22,7 @@ type Decoder struct {
 // The decoder checks the stream has a correct Boost binary header.
 func NewDecoder(r io.Reader) *Decoder {
 	rr := NewReader(r)
-	return &Decoder{r: rr, Header: rr.readHeader()}
+	return &Decoder{r: rr, Header: rr.ReadHeader()}
 }
 
 // Decode reads the next value from its input and stores it in the

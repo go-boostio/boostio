@@ -24,7 +24,7 @@ func NewReader(r io.Reader) *Reader {
 
 func (r *Reader) Err() error { return r.err }
 
-func (r *Reader) readHeader() Header {
+func (r *Reader) ReadHeader() Header {
 	var hdr Header
 	if r.r == nil {
 		r.err = ErrNotBoost
