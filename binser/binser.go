@@ -33,9 +33,9 @@ var (
 	bserHdr = Header{
 		Version: Version,
 		Flags: binary.LittleEndian.Uint64([]byte{
-			0x4, 0x8, // size of int
-			0x4, 0x8, // size of uint
-			0x1, 0x0, 0x0, 0x0,
+			0x4, 0x8, // size of int, long
+			0x4, 0x8, // size of float, double
+			0x1, 0x0, 0x0, 0x0, // little-endian
 		}),
 	}
 )
