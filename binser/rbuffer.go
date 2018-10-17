@@ -36,12 +36,12 @@ func (r *RBuffer) ReadHeader() Header {
 	}
 
 	v := r.ReadString()
-	if v != "serialization::archive" {
+	if v != magicHeader {
 		r.err = ErrNotBoost
 		return hdr
 	}
-	hdr.Version = r.ReadU16()
-	hdr.Flags = r.ReadU64()
+
+	hdr.UnmarshalBoost(r)
 	if r.err != nil {
 		r.err = ErrInvalidHeader
 	}
@@ -50,11 +50,10 @@ func (r *RBuffer) ReadHeader() Header {
 
 func (r *RBuffer) ReadTypeDescr() TypeDescr {
 	var dtype TypeDescr
+	dtype.UnmarshalBoost(r)
 	if r.err != nil {
-		return dtype
+		r.err = ErrInvalidTypeDescr
 	}
-	dtype.Version = r.ReadU32()
-	dtype.Flags = r.ReadU8()
 	return dtype
 }
 
@@ -152,3 +151,7 @@ func (r *RBuffer) load(n int) {
 		r.err = io.ErrUnexpectedEOF
 	}
 }
+
+var (
+	_ io.Reader = (*RBuffer)(nil)
+)
