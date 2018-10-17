@@ -7,8 +7,6 @@ package binser
 import (
 	"io"
 	"reflect"
-
-	"github.com/pkg/errors"
 )
 
 // A Decoder reads and decodes values from a Boost binary serialization stream.
@@ -103,7 +101,7 @@ func (dec *Decoder) Decode(ptr interface{}) error {
 		}
 
 	default:
-		return errors.Errorf("boost: invalid type %T", ptr)
+		return ErrTypeNotSupported
 	}
 	return dec.r.err
 }

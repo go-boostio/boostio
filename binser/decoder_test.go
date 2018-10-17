@@ -256,3 +256,22 @@ func TestInvalidArray(t *testing.T) {
 		t.Fatalf("got=%#v, want=%#v", got, want)
 	}
 }
+
+func TestDecoderInvalidType(t *testing.T) {
+	f, err := os.Open("testdata/data.bin")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+
+	var iface interface{} = 42
+
+	dec := binser.NewDecoder(f)
+	err = dec.Decode(iface)
+	if err == nil {
+		t.Fatalf("expected an error")
+	}
+	if got, want := err, binser.ErrTypeNotSupported; !reflect.DeepEqual(got, want) {
+		t.Fatalf("got=%#v, want=%#v", got, want)
+	}
+}

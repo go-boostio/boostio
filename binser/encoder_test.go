@@ -106,3 +106,17 @@ func TestWBufferWriter(t *testing.T) {
 		t.Fatalf("got=%q, want=%q", got, want)
 	}
 }
+
+func TestEncoderInvalidType(t *testing.T) {
+	var iface interface{} = 42
+
+	enc := binser.NewEncoder(new(bytes.Buffer))
+	err := enc.Encode(iface)
+	if err == nil {
+		t.Fatalf("expected an error")
+	}
+
+	if got, want := err, binser.ErrTypeNotSupported; !reflect.DeepEqual(got, want) {
+		t.Fatalf("got=%#v, want=%#v", got, want)
+	}
+}

@@ -7,8 +7,6 @@ package binser
 import (
 	"io"
 	"reflect"
-
-	"github.com/pkg/errors"
 )
 
 // An Encoder writes and encodes values to a Boost binary serialization stream.
@@ -105,7 +103,7 @@ func (enc *Encoder) Encode(v interface{}) error {
 		}
 
 	default:
-		return errors.Errorf("boost: invalid type %T", v)
+		return ErrTypeNotSupported
 	}
 	return enc.w.err
 }
