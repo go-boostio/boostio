@@ -56,6 +56,7 @@ func main() {
 const src = `
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/serialization/array.hpp>
+#include <boost/serialization/map.hpp>
 #include <boost/serialization/vector.hpp>
 
 #include <iostream>
@@ -100,7 +101,6 @@ int main()
   binary_oarchive oa{std::cout};
 
   oa 
-	<< std::string("hello")
 	<< false << true
 	<< int8_t(0x11)
 	<< int16_t(0x2222)
@@ -114,6 +114,9 @@ int main()
 	<< double(3.3)
 	<< std::array<uint8_t, 3>({0x11,0x22,0x33})
 	<< std::vector<uint8_t>({0x11,0x22,0x33,0xff})
+	<< std::vector<uint8_t>({'h', 'e', 'l', 'l', 'o'})
+	<< std::string("hello")
+	<< std::map<std::string, std::string>({{"eins", "un"}, {"zwei", "deux"}, {"drei", "trois"}})
 	;
 
   oa << animal("pet", 4, 1);

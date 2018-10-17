@@ -5,7 +5,6 @@
 package binser_test
 
 import (
-	"bytes"
 	"os"
 	"reflect"
 	"testing"
@@ -35,7 +34,6 @@ func TestRead(t *testing.T) {
 		name string
 		want interface{}
 	}{
-		{"string", "hello"},
 		{"bool-false", false},
 		{"bool-true", true},
 		{"int8", int8(0x11)},
@@ -50,10 +48,16 @@ func TestRead(t *testing.T) {
 		{"float64", 3.3},
 		{"[3]uint8", [3]uint8{0x11, 0x22, 0x33}},
 		{"[]uint8", []uint8{0x11, 0x22, 0x33, 0xff}},
+		{"[]byte", []byte("hello")},
+		{"string", "hello"},
+		{"map[string]string", map[string]string{"eins": "un", "zwei": "deux", "drei": "trois"}},
 		{"struct", animal{"pet", 4, 1}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			rv := reflect.New(reflect.TypeOf(tc.want)).Elem()
+			if rv.Kind() == reflect.Map {
+				rv.Set(reflect.MakeMap(rv.Type()))
+			}
 			err := dec.Decode(rv.Addr().Interface())
 			if err != nil {
 				t.Fatalf("could not read %q: %v", tc.name, err)
@@ -62,40 +66,5 @@ func TestRead(t *testing.T) {
 				t.Fatalf("got=%#v (%T)\nwant=%#v (%T)", got, got, want, want)
 			}
 		})
-	}
-}
-
-func TestReadBytes(t *testing.T) {
-	type animal struct {
-		Name  string
-		Legs  int16
-		Tails int8
-	}
-
-	f, err := os.Open("testdata/data.bin")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer f.Close()
-
-	dec, err := binser.NewDecoder(f)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	n := dec.ReadI64()
-	want := []byte("hello")
-	if n != int64(len(want)) {
-		t.Fatalf("got=%d, want=%d", n, len(want))
-	}
-
-	raw := make([]byte, n)
-	_, err = dec.Read(raw)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if !bytes.Equal(raw, want) {
-		t.Fatalf("got=%q, want=%q", raw, want)
 	}
 }
