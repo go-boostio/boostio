@@ -14,7 +14,7 @@ import (
 	"github.com/go-boostio/boostio/binser"
 )
 
-func TestRead(t *testing.T) {
+func TestDecoder(t *testing.T) {
 	type animal struct {
 		Name  string
 		Legs  int16
@@ -154,7 +154,7 @@ type animal struct {
 	Tails int8
 }
 
-func (a *animal) UnmarshalBoost(r *binser.Reader) error {
+func (a *animal) UnmarshalBoost(r *binser.RBuffer) error {
 	/*typ*/ _ = r.ReadTypeDescr()
 	a.Name = r.ReadString()
 	a.Legs = r.ReadI16()

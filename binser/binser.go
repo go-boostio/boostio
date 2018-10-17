@@ -32,5 +32,5 @@ type TypeDescr struct {
 // Unmarshaler is the interface implemented by types that can unmarshal a binary
 // Boost description of themselves.
 type Unmarshaler interface {
-	UnmarshalBoost(r *Reader) error
+	UnmarshalBoost(r *RBuffer) error
 }

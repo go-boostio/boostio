@@ -13,7 +13,7 @@ import (
 
 // A Decoder reads and decodes values from a Boost binary serialization stream.
 type Decoder struct {
-	r      *Reader
+	r      *RBuffer
 	Header Header
 }
 
@@ -21,7 +21,7 @@ type Decoder struct {
 //
 // The decoder checks the stream has a correct Boost binary header.
 func NewDecoder(r io.Reader) *Decoder {
-	rr := NewReader(r)
+	rr := NewRBuffer(r)
 	return &Decoder{r: rr, Header: rr.ReadHeader()}
 }
 

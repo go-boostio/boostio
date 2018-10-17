@@ -47,14 +47,14 @@ func ExampleDecoder() {
 	// int8: 0x11
 }
 
-func ExampleReader() {
+func ExampleRBuffer() {
 	f, err := os.Open("testdata/data.bin")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer f.Close()
 
-	r := binser.NewReader(f)
+	r := binser.NewRBuffer(f)
 
 	fmt.Printf("header: %#v\n", r.ReadHeader())
 
@@ -85,5 +85,4 @@ func ExampleReader() {
 	// uint64: 0x444444444444444
 	// float32: 2.2
 	// float64: 3.3
-
 }
