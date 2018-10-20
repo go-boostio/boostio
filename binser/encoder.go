@@ -80,8 +80,13 @@ func (enc *Encoder) Encode(v interface{}) error {
 			enc.Encode(rv.Field(i).Interface())
 		}
 	case reflect.Slice:
+		rt := rv.Type()
+		enc.w.WriteTypeDescr(rt)
 		n := rv.Len()
 		enc.w.WriteU64(uint64(n))
+		if et := rt.Elem(); !isBuiltin(et.Kind()) {
+			enc.w.WriteU32(0) // FIXME(sbinet): what is this?
+		}
 		for i := 0; i < int(n); i++ {
 			e := rv.Index(i)
 			enc.Encode(e.Interface()) // FIXME(sbinet): do not go through Decode each time

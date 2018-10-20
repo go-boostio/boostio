@@ -71,7 +71,7 @@ using namespace boost::archive;
 class animal {
 public:
 	animal(std::string name = "pet", int legs=4, int tails=2) 
-		: m_name("pet")
+		: m_name(name)
 		, m_legs(legs)
 		, m_tails(tails)
 	{}
@@ -121,5 +121,7 @@ int main()
 
   oa << animal("pet", 4, 1);
   oa << animal("pet", 4, 1);
+  oa << std::vector<std::string>({"s1", "s2", "s3"});
+  oa << std::vector<animal>({animal("tiger",4,1), animal("monkey",4,1)});
 }
 `

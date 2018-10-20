@@ -42,6 +42,8 @@ var typeTestCases = []struct {
 	{"map[string]string", map[string]string{"eins": "un", "zwei": "deux", "drei": "trois"}},
 	{"struct", animal{"pet", 4, 1}},
 	{"struct-marshal", manimal{"pet", 4, 1}},
+	{"[]string", []string{"s1", "s2", "s3"}},
+	{"[]animal", []manimal{{"tiger", 4, 1}, {"monkey", 4, 1}}},
 }
 
 func TestEncoder(t *testing.T) {
@@ -158,11 +160,14 @@ func TestEncoderCompatWithBoost(t *testing.T) {
 		log.Fatalf("could not generate C++ source file: %v", err)
 	}
 
+	dbg := new(bytes.Buffer)
 	cmd := exec.Command("c++", "-std=c++11", "-lboost_serialization", "-o", "bread", "read.cxx")
 	cmd.Dir = tmp
+	cmd.Stdout = dbg
+	cmd.Stderr = dbg
 	err = cmd.Run()
 	if err != nil {
-		t.Skipf("could not compile C++ Boost")
+		t.Skipf("could not compile C++ Boost: %s", dbg.Bytes())
 		os.Remove(f.Name())
 		return
 	}
@@ -200,6 +205,8 @@ string: "hello"
 map: {{drei: trois}, {eins: un}, {zwei: deux}, }
 animal: {name: pet, legs: 4, tails: 1}
 animal: {name: pet, legs: 4, tails: 1}
+[]string: {s1, s2, s3, }
+[]animal: {{name: tiger, legs: 4, tails: 1}, {name: monkey, legs: 4, tails: 1}, }
 `
 	if got, want := out.Bytes(), []byte(want); !bytes.Equal(got, want) {
 		t.Fatalf("output differs:\ngot:\n%s\nwant:%s\n", got, want)
@@ -375,6 +382,22 @@ int main()
 	  animal v;
 	  ia >> v;
 	  std::cout << "animal: {name: " << v.name() << ", legs: " << v.legs() << ", tails: " << v.tails() << "}\n";
+  }
+
+  {
+	  std::vector<std::string> vs;
+	  ia >> vs;
+	  std::cout << "[]string: {";
+	  for (auto v: vs) { std::cout << v << ", "; }
+	  std::cout << "}\n";
+  }
+
+  {
+	  std::vector<animal> vs;
+	  ia >> vs;
+	  std::cout << "[]animal: {";
+	  for (auto v: vs) { std::cout << "{name: " << v.name() << ", legs: " << v.legs() << ", tails: " << v.tails() << "}, "; }
+	  std::cout << "}\n";
   }
 }
 `

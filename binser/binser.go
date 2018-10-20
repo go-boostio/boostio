@@ -23,6 +23,7 @@ package binser // import "github.com/go-boostio/boostio/binser"
 
 import (
 	"encoding/binary"
+	"reflect"
 
 	"github.com/pkg/errors"
 )
@@ -111,6 +112,52 @@ func (dt *TypeDescr) UnmarshalBoost(r *RBuffer) error {
 	dt.Version = r.ReadU32()
 	dt.Flags = r.ReadU8()
 	return r.err
+}
+
+type Registry map[reflect.Type]TypeDescr
+
+func NewRegistry() Registry {
+	return Registry(map[reflect.Type]TypeDescr{
+		reflect.TypeOf(false):        TypeDescr{},
+		reflect.TypeOf(uint8(0)):     TypeDescr{},
+		reflect.TypeOf(uint16(0)):    TypeDescr{},
+		reflect.TypeOf(uint32(0)):    TypeDescr{},
+		reflect.TypeOf(uint64(0)):    TypeDescr{},
+		reflect.TypeOf(int8(0)):      TypeDescr{},
+		reflect.TypeOf(int16(0)):     TypeDescr{},
+		reflect.TypeOf(int32(0)):     TypeDescr{},
+		reflect.TypeOf(int64(0)):     TypeDescr{},
+		reflect.TypeOf(float32(0.0)): TypeDescr{},
+		reflect.TypeOf(float64(0.0)): TypeDescr{},
+		reflect.TypeOf(""):           TypeDescr{},
+		reflect.TypeOf([]bool{}):     TypeDescr{},
+		reflect.TypeOf([]uint8{}):    TypeDescr{},
+		reflect.TypeOf([]uint16{}):   TypeDescr{},
+		reflect.TypeOf([]uint32{}):   TypeDescr{},
+		reflect.TypeOf([]uint64{}):   TypeDescr{},
+		reflect.TypeOf([]int8{}):     TypeDescr{},
+		reflect.TypeOf([]int16{}):    TypeDescr{},
+		reflect.TypeOf([]int32{}):    TypeDescr{},
+		reflect.TypeOf([]int64{}):    TypeDescr{},
+		reflect.TypeOf([]float32{}):  TypeDescr{},
+		reflect.TypeOf([]float64{}):  TypeDescr{},
+	})
+}
+
+func isBuiltin(k reflect.Kind) bool {
+	switch k {
+	case reflect.Bool:
+		return true
+	case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return true
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return true
+	case reflect.Float32, reflect.Float64:
+		return true
+	case reflect.Complex64, reflect.Complex128:
+		return true
+	}
+	return false
 }
 
 var (

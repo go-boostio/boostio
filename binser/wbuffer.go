@@ -16,14 +16,14 @@ type WBuffer struct {
 	err error
 	buf []byte
 
-	types map[reflect.Type]TypeDescr
+	types Registry
 }
 
 func NewWBuffer(w io.Writer) *WBuffer {
 	return &WBuffer{
 		w:     w,
 		buf:   make([]byte, 8),
-		types: make(map[reflect.Type]TypeDescr),
+		types: NewRegistry(),
 	}
 }
 

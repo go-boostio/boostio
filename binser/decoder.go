@@ -69,7 +69,13 @@ func (dec *Decoder) Decode(ptr interface{}) error {
 			dec.Decode(rv.Field(i).Addr().Interface())
 		}
 	case reflect.Slice:
+		rt := rv.Type()
+		/*typ*/ _ = dec.r.ReadTypeDescr(rt)
 		n := dec.r.ReadU64()
+		if et := rt.Elem(); !isBuiltin(et.Kind()) {
+			_ = dec.r.ReadU32() // FIXME(sbinet): what is this ?
+		}
+
 		if len, n := rv.Len(), int(n); len < n {
 			rv.Set(reflect.AppendSlice(rv, reflect.MakeSlice(rv.Type(), n-len, n)))
 		}

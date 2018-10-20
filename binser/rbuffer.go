@@ -17,7 +17,7 @@ type RBuffer struct {
 	err error
 	buf []byte
 
-	types map[reflect.Type]TypeDescr
+	types Registry
 }
 
 // NewRBuffer returns a new read-only buffer that reads from r.
@@ -25,7 +25,7 @@ func NewRBuffer(r io.Reader) *RBuffer {
 	return &RBuffer{
 		r:     r,
 		buf:   make([]byte, 8),
-		types: make(map[reflect.Type]TypeDescr),
+		types: NewRegistry(),
 	}
 }
 
