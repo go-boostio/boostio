@@ -114,10 +114,10 @@ func (dt *TypeDescr) UnmarshalBoost(r *RBuffer) error {
 	return r.err
 }
 
-type Registry map[reflect.Type]TypeDescr
+type registry map[reflect.Type]TypeDescr
 
-func NewRegistry() Registry {
-	return Registry(map[reflect.Type]TypeDescr{
+func newRegistry() registry {
+	return registry(map[reflect.Type]TypeDescr{
 		reflect.TypeOf(false):          TypeDescr{},
 		reflect.TypeOf(uint8(0)):       TypeDescr{},
 		reflect.TypeOf(uint16(0)):      TypeDescr{},
