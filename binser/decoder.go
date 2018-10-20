@@ -60,6 +60,10 @@ func (dec *Decoder) Decode(ptr interface{}) error {
 		rv.SetFloat(float64(dec.r.ReadF32()))
 	case reflect.Float64:
 		rv.SetFloat(dec.r.ReadF64())
+	case reflect.Complex64:
+		rv.SetComplex(complex128(dec.r.ReadC64()))
+	case reflect.Complex128:
+		rv.SetComplex(dec.r.ReadC128())
 	case reflect.String:
 		rv.SetString(dec.r.ReadString())
 	case reflect.Struct:

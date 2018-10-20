@@ -71,6 +71,10 @@ func (enc *Encoder) Encode(v interface{}) error {
 		enc.w.WriteF32(float32(rv.Float()))
 	case reflect.Float64:
 		enc.w.WriteF64(rv.Float())
+	case reflect.Complex64:
+		enc.w.WriteC64(complex64(rv.Complex()))
+	case reflect.Complex128:
+		enc.w.WriteC128(rv.Complex())
 	case reflect.String:
 		enc.w.WriteString(rv.String())
 	case reflect.Struct:

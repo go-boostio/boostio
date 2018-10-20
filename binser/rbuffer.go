@@ -150,6 +150,21 @@ func (r *RBuffer) ReadF64() float64 {
 	return math.Float64frombits(binary.LittleEndian.Uint64(r.buf[:8]))
 }
 
+func (r *RBuffer) ReadC64() complex64 {
+	r.load(8)
+	v0 := math.Float32frombits(binary.LittleEndian.Uint32(r.buf[0:4]))
+	v1 := math.Float32frombits(binary.LittleEndian.Uint32(r.buf[4:8]))
+	return complex(v0, v1)
+}
+
+func (r *RBuffer) ReadC128() complex128 {
+	r.load(8)
+	v0 := math.Float64frombits(binary.LittleEndian.Uint64(r.buf[:8]))
+	r.load(8)
+	v1 := math.Float64frombits(binary.LittleEndian.Uint64(r.buf[:8]))
+	return complex(v0, v1)
+}
+
 func (r *RBuffer) load(n int) {
 	if r.err != nil {
 		return

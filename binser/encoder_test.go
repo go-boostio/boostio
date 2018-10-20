@@ -35,6 +35,8 @@ var typeTestCases = []struct {
 	{"uint64", uint64(0x444444444444444)},
 	{"float32", float32(2.2)},
 	{"float64", 3.3},
+	{"cmplx64", complex(float32(2), float32(3))},
+	{"cmplx128", complex(float64(4), float64(9))},
 	{"[3]uint8", [3]uint8{0x11, 0x22, 0x33}},
 	{"[]uint8", []uint8{0x11, 0x22, 0x33, 0xff}},
 	{"[]byte", []byte("hello")},
@@ -198,6 +200,8 @@ uint32_t: 0x3333333
 uint64_t: 0x44444444
 float32: 2.2
 float64: 3.3
+complex64: 2.0 + 3.0i
+complex128: 4.0 + 9.0i
 [3]uint8: {0x11, 0x22, 0x33, }
 []uint8: {0x11, 0x22, 0x33, 0xff, }
 []uint8: {68, 65, 6c, 6c, 6f, }
@@ -218,6 +222,7 @@ animal: {name: pet, legs: 4, tails: 1}
 const boostReadSrc = `
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/array.hpp>
+#include <boost/serialization/complex.hpp>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/vector.hpp>
 
@@ -332,6 +337,18 @@ int main()
 	double v;
 	ia >> v;
 	std::printf("float64: %1.1f\n", v);
+  }
+
+  {
+	std::complex<float> v;
+	ia >> v;
+	std::printf("complex64: %1.1f + %1.1fi\n", v.real(), v.imag());
+  }
+
+  {
+	std::complex<double> v;
+	ia >> v;
+	std::printf("complex128: %1.1f + %1.1fi\n", v.real(), v.imag());
   }
 
   {

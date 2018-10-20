@@ -175,6 +175,29 @@ func (w *WBuffer) WriteF64(v float64) error {
 	return w.err
 }
 
+func (w *WBuffer) WriteC64(v complex64) error {
+	if w.err != nil {
+		return w.err
+	}
+	const n = 8
+	binary.LittleEndian.PutUint32(w.buf[:4], math.Float32bits(real(v)))
+	binary.LittleEndian.PutUint32(w.buf[4:], math.Float32bits(imag(v)))
+	w.write(n)
+	return w.err
+}
+
+func (w *WBuffer) WriteC128(v complex128) error {
+	if w.err != nil {
+		return w.err
+	}
+	const n = 8
+	binary.LittleEndian.PutUint64(w.buf[:n], math.Float64bits(real(v)))
+	w.write(n)
+	binary.LittleEndian.PutUint64(w.buf[:n], math.Float64bits(imag(v)))
+	w.write(n)
+	return w.err
+}
+
 func (w *WBuffer) write(n int) error {
 	if w.err != nil {
 		return w.err

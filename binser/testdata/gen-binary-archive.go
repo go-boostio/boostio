@@ -56,6 +56,7 @@ func main() {
 const src = `
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/serialization/array.hpp>
+#include <boost/serialization/complex.hpp>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/vector.hpp>
 
@@ -112,6 +113,8 @@ int main()
 	<< uint64_t(0x444444444444444)
 	<< float(2.2)
 	<< double(3.3)
+	<< std::complex<float>(2.0, 3.0)
+	<< std::complex<double>(4.0, 9.0)
 	<< std::array<uint8_t, 3>({0x11,0x22,0x33})
 	<< std::vector<uint8_t>({0x11,0x22,0x33,0xff})
 	<< std::vector<uint8_t>({'h', 'e', 'l', 'l', 'o'})
