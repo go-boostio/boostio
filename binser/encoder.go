@@ -88,7 +88,7 @@ func (enc *Encoder) Encode(v interface{}) error {
 		enc.w.WriteTypeDescr(rt)
 		n := rv.Len()
 		enc.w.WriteU64(uint64(n))
-		if et := rt.Elem(); !isBuiltin(et.Kind()) {
+		if et := rt.Elem(); !isCxxBoostBuiltin(et.Kind()) {
 			enc.w.WriteU32(0) // FIXME(sbinet): what is this?
 		}
 		for i := 0; i < int(n); i++ {
