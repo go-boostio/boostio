@@ -97,6 +97,8 @@ private:
 	int8_t		m_tails;
 };
 
+BOOST_CLASS_VERSION(animal, 11)
+
 int main()
 {
   binary_oarchive oa{std::cout};
