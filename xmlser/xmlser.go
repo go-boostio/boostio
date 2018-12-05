@@ -2,27 +2,26 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package binser provides types to read and write binary archives from the C++
+// Package xmlser provides types to read and write XML archives from the C++
 // Boost Serialization library.
 //
 // Writing values to an output binary archive can be done like so:
 //
-//  enc := binser.NewEncoder(w)
+//  enc := xmlser.NewEncoder(w)
 //  err := enc.Encode("hello")
 //
 // And reading values from an input binary archive:
 //
-//  dec := binser.NewDecoder(r)
+//  dec := xmlser.NewDecoder(r)
 //  str := ""
 //  err := dec.Decode(&str)
 //
 // For more informations, look at the examples for Encoder, Decoder and read/write Buffer.
-package binser // import "github.com/go-boostio/boostio/binser"
+package xmlser // import "github.com/go-boostio/boostio/xmlser"
 
-//go:generate go run ./testdata/gen-binary-archive.go
+//go:generate go run ./testdata/gen-xml-archive.go
 
 import (
-	"encoding/binary"
 	"reflect"
 
 	"github.com/go-boostio/boostio"
@@ -30,86 +29,80 @@ import (
 )
 
 const (
-	magicHeader = "serialization::archive"
+	magicStartElement = "boost_serialization"
+	magicHeader       = "serialization::archive"
 )
 
 var (
-	ErrNotBoost         = errors.New("binser: not a Boost binary archive")
-	ErrInvalidHeader    = errors.New("binser: invalid Boost binary archive header")
-	ErrInvalidTypeDescr = errors.New("binser: invalid Boost binary archive type descriptor")
-	ErrTypeNotSupported = errors.New("binser: type not supported")
-	ErrInvalidArrayLen  = errors.New("binser: invalid array type")
+	ErrNotBoost         = errors.New("xmlser: not a Boost XML archive")
+	ErrInvalidHeader    = errors.New("xmlser: invalid Boost XML archive header")
+	ErrInvalidTypeDescr = errors.New("xmlser: invalid Boost XML archive type descriptor")
+	ErrTypeNotSupported = errors.New("xmlser: type not supported")
+	ErrInvalidArrayLen  = errors.New("xmlser: invalid array type")
 )
 
 var (
 	zeroHdr Header
-	bserHdr = Header{
-		Version: boostio.Version,
-		Flags: binary.LittleEndian.Uint64([]byte{
-			0x4, 0x8, // size of int, long
-			0x4, 0x8, // size of float, double
-			0x1, 0x0, 0x0, 0x0, // little-endian
-		}),
-	}
+	bserHdr = Header{Version: boostio.Version}
 )
 
-// Unmarshaler is the interface implemented by types that can unmarshal a binary
-// Boost description of themselves.
+// Unmarshaler is the interface implemented by types that can unmarshal a
+// Boost XML description of themselves.
 type Unmarshaler interface {
-	UnmarshalBoost(r *RBuffer) error
+	UnmarshalBoostXML(r *RBuffer) error
 }
 
 // Marshaler is the interface implemented by types that can marshal themselves
-// into a valid binary Boost serialization archive.
+// into a valid Boost serialization XML archive.
 type Marshaler interface {
-	MarshalBoost(w *WBuffer) error
+	MarshalBoostXML(w *WBuffer) error
 }
 
-// Header describes a binary boost archive.
+// Header describes a boost XML archive.
 type Header struct {
 	Version uint16
-	Flags   uint64
 }
 
-func (hdr Header) MarshalBoost(w *WBuffer) error {
+func (hdr Header) MarshalBoostXML(w *WBuffer) error {
 	if w.err != nil {
 		return w.err
 	}
-	w.WriteU16(hdr.Version)
-	w.WriteU64(hdr.Flags)
+	w.WriteU16("version", hdr.Version)
 	return w.err
 }
 
-func (hdr *Header) UnmarshalBoost(r *RBuffer) error {
+func (hdr *Header) UnmarshalBoostXML(r *RBuffer) error {
 	if r.err != nil {
 		return r.err
 	}
 	hdr.Version = r.ReadU16()
-	hdr.Flags = r.ReadU64()
 	return r.err
 }
 
-// TypeDescr describes an on-disk binary boost archive type.
+// TypeDescr describes an on-disk boost XML archive type.
 type TypeDescr struct {
 	Version uint32
-	Flags   uint8
+	ID      int64
+	Level   int64
 }
 
-func (dt TypeDescr) MarshalBoost(w *WBuffer) error {
+func (dt TypeDescr) MarshalBoostXML(w *WBuffer) error {
 	if w.err != nil {
 		return w.err
 	}
-	w.WriteU32(dt.Version)
-	w.WriteU8(dt.Flags)
+	w.WriteI64("class_id", dt.ID)
+	w.WriteI64("tracking_level", dt.Level)
+	w.WriteU32("version", dt.Version)
 	return w.err
 }
 
-func (dt *TypeDescr) UnmarshalBoost(r *RBuffer) error {
+func (dt *TypeDescr) UnmarshalBoostXML(r *RBuffer) error {
 	if r.err != nil {
 		return r.err
 	}
+	dt.ID = r.ReadI64()
+	dt.Level = r.ReadI64()
 	dt.Version = r.ReadU32()
-	dt.Flags = r.ReadU8()
 	return r.err
 }
 

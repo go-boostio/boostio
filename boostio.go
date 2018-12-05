@@ -6,3 +6,7 @@
 // streams compatible with the C++ Boost Serialization library:
 //  - https://theboostcpplibraries.com/boost.serialization
 package boostio // import "github.com/go-boostio/boostio"
+
+const (
+	Version uint16 = 0x11 // Boost archive version
+)

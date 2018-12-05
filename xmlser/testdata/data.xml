@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<!DOCTYPE boost_serialization>
+<boost_serialization signature="serialization::archive" version="17">
+<v1>0</v1>
+<v2>1</v2>
+<v3>17</v3>
+<v4>8738</v4>
+<v5>858993459</v5>
+<v6>4919131752989213764</v6>
+<v7>255</v7>
+<v8>8738</v8>
+<v9>53687091</v9>
+<v10>307445734561825860</v10>
+<v11>2.200000048e+00</v11>
+<v12>3.29999999999999982e+00</v12>
+<v13>
+	<real>2.000000000e+00</real>
+	<imag>3.000000000e+00</imag>
+</v13>
+<v14>
+	<real>4.00000000000000000e+00</real>
+	<imag>9.00000000000000000e+00</imag>
+</v14>
+<v15 class_id="0" tracking_level="0" version="0">
+	<elems>
+		<count>3</count>
+		<item>17</item>
+		<item>34</item>
+		<item>51</item>
+	</elems>
+</v15>
+<v16>
+	<count>4</count>
+	<item_version>0</item_version>
+	<item>17</item>
+	<item>34</item>
+	<item>51</item>
+	<item>255</item>
+</v16>
+<v17>
+	<count>5</count>
+	<item_version>0</item_version>
+	<item>104</item>
+	<item>101</item>
+	<item>108</item>
+	<item>108</item>
+	<item>111</item>
+</v17>
+<v18>hello</v18>
+<v19 class_id="2" tracking_level="0" version="0">
+	<count>3</count>
+	<item_version>0</item_version>
+	<item class_id="3" tracking_level="0" version="0">
+		<first>drei</first>
+		<second>trois</second>
+	</item>
+	<item>
+		<first>eins</first>
+		<second>un</second>
+	</item>
+	<item>
+		<first>zwei</first>
+		<second>deux</second>
+	</item>
+</v19>
+<v20 class_id="4" tracking_level="0" version="11">
+	<m_name>pet</m_name>
+	<m_legs>4</m_legs>
+	<m_tails>1</m_tails>
+</v20>
+<v21>
+	<m_name>pet</m_name>
+	<m_legs>4</m_legs>
+	<m_tails>1</m_tails>
+</v21>
+<v22 class_id="5" tracking_level="0" version="0">
+	<count>3</count>
+	<item_version>0</item_version>
+	<item>s1</item>
+	<item>s2</item>
+	<item>s3</item>
+</v22>
+<v23 class_id="6" tracking_level="0" version="0">
+	<count>2</count>
+	<item_version>11</item_version>
+	<item>
+		<m_name>tiger</m_name>
+		<m_legs>4</m_legs>
+		<m_tails>1</m_tails>
+	</item>
+	<item>
+		<m_name>monkey</m_name>
+		<m_legs>4</m_legs>
+		<m_tails>1</m_tails>
+	</item>
+</v23>
+</boost_serialization>
+
