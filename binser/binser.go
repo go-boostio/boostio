@@ -25,12 +25,12 @@ import (
 	"encoding/binary"
 	"errors"
 	"reflect"
+
+	"github.com/go-boostio/boostio"
 )
 
 const (
 	magicHeader = "serialization::archive"
-
-	Version uint16 = 0x13 // Boost archive version
 )
 
 var (
@@ -44,7 +44,7 @@ var (
 var (
 	zeroHdr   Header
 	bser64Hdr = Header{
-		Version: Version,
+		Version: boostio.Version,
 		Flags: binary.LittleEndian.Uint64([]byte{
 			0x4, 0x8, // size of int, long
 			0x4, 0x8, // size of float, double
@@ -52,7 +52,7 @@ var (
 		}),
 	}
 	bser32Hdr = Header{
-		Version: Version,
+		Version: boostio.Version,
 		Flags: binary.LittleEndian.Uint64([]byte{
 			0x4, 0x4, // size of int, long
 			0x4, 0x8, // size of float, double

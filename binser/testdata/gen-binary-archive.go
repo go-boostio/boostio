@@ -93,7 +93,7 @@ using namespace boost::archive;
 
 class animal {
 public:
-	animal(std::string name = "pet", int legs=4, int tails=2) 
+	animal(std::string name = "pet", int legs=4, int tails=2)
 		: m_name(name)
 		, m_legs(legs)
 		, m_tails(tails)
@@ -125,7 +125,7 @@ int main()
 {
   binary_oarchive oa{std::cout};
 
-  oa 
+  oa
 	<< false << true
 	<< int8_t(0x11)
 	<< int16_t(0x2222)
