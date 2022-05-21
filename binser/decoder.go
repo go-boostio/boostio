@@ -13,6 +13,7 @@ import (
 type Decoder struct {
 	r      *RBuffer
 	Header Header
+	bit32  bool
 }
 
 // NewDecoder returns a new decoder that reads from r.
@@ -21,6 +22,11 @@ type Decoder struct {
 func NewDecoder(r io.Reader) *Decoder {
 	rr := NewRBuffer(r)
 	return &Decoder{r: rr, Header: rr.ReadHeader()}
+}
+
+func NewDecoder32(r io.Reader) *Decoder {
+	rr := NewRBuffer32(r)
+	return &Decoder{r: rr, Header: rr.ReadHeader(), bit32: true}
 }
 
 // Decode reads the next value from its input and stores it in the
@@ -75,7 +81,12 @@ func (dec *Decoder) Decode(ptr interface{}) error {
 	case reflect.Slice:
 		rt := rv.Type()
 		/*typ*/ _ = dec.r.ReadTypeDescr(rt)
-		n := dec.r.ReadU64()
+		var n int
+		if dec.bit32 {
+			n = int(dec.r.ReadU32())
+		} else {
+			n = int(dec.r.ReadU64())
+		}
 		if et := rt.Elem(); !isCxxBoostBuiltin(et.Kind()) {
 			_ = dec.r.ReadU32() // FIXME(sbinet): what is this ?
 		}
@@ -89,7 +100,12 @@ func (dec *Decoder) Decode(ptr interface{}) error {
 		}
 	case reflect.Array:
 		/*typ*/ _ = dec.r.ReadTypeDescr(rt)
-		n := int(dec.r.ReadU64())
+		var n int
+		if dec.bit32 {
+			n = int(dec.r.ReadU32())
+		} else {
+			n = int(dec.r.ReadU64())
+		}
 		if n != rv.Type().Len() {
 			return ErrInvalidArrayLen
 		}
@@ -99,7 +115,12 @@ func (dec *Decoder) Decode(ptr interface{}) error {
 		}
 	case reflect.Map:
 		/*typ*/ _ = dec.r.ReadTypeDescr(rt)
-		n := int(dec.r.ReadU64())
+		var n int
+		if dec.bit32 {
+			n = int(dec.r.ReadU32())
+		} else {
+			n = int(dec.r.ReadU64())
+		}
 		_ = dec.r.ReadU64() // FIXME(sbinet): what is this ?
 		_ = dec.r.ReadU8()  // FIXME(sbinet): ditto ?
 		kt := rv.Type().Key()

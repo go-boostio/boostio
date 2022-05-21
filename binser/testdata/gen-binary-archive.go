@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+//go:build ignore
 // +build ignore
 
 package main
@@ -37,6 +38,15 @@ func main() {
 		log.Fatalf("could not build C++ Boost program: %v", err)
 	}
 
+	cmd = exec.Command("c++", "-m32", "-lboost_serialization", "-o", "bwrite32", "write.cxx")
+	cmd.Dir = tmp
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	if err != nil {
+		log.Fatalf("could not build C++ Boost program: %v", err)
+	}
+
 	archive := new(bytes.Buffer)
 	cmd = exec.Command("./bwrite")
 	cmd.Dir = tmp
@@ -48,6 +58,21 @@ func main() {
 	}
 
 	err = ioutil.WriteFile("testdata/data.bin", archive.Bytes(), 0644)
+	if err != nil {
+		log.Fatalf("could not save binary archive: %v", err)
+	}
+
+	archive = new(bytes.Buffer)
+	cmd = exec.Command("./bwrite32")
+	cmd.Dir = tmp
+	cmd.Stdout = archive
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	if err != nil {
+		log.Fatalf("could not run C++ Boost program: %v", err)
+	}
+
+	err = ioutil.WriteFile("testdata/data32.bin", archive.Bytes(), 0644)
 	if err != nil {
 		log.Fatalf("could not save binary archive: %v", err)
 	}

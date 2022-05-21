@@ -13,9 +13,10 @@ import (
 
 // A RBuffer reads values from a Boost binary serialization stream.
 type RBuffer struct {
-	r   io.Reader
-	err error
-	buf []byte
+	r     io.Reader
+	err   error
+	buf   []byte
+	bit32 bool
 
 	types registry
 }
@@ -27,6 +28,12 @@ func NewRBuffer(r io.Reader) *RBuffer {
 		buf:   make([]byte, 8),
 		types: newRegistry(),
 	}
+}
+
+func NewRBuffer32(r io.Reader) *RBuffer {
+	RBuffer := NewRBuffer(r)
+	RBuffer.bit32 = true
+	return RBuffer
 }
 
 func (r *RBuffer) Err() error { return r.err }
@@ -81,7 +88,12 @@ func (r *RBuffer) Read(p []byte) (int, error) {
 }
 
 func (r *RBuffer) ReadString() string {
-	n := r.ReadU64()
+	var n int
+	if r.bit32 {
+		n = int(r.ReadU32())
+	} else {
+		n = int(r.ReadU64())
+	}
 	if n == 0 || r.err != nil {
 		return ""
 	}

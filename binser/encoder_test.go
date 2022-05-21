@@ -86,6 +86,44 @@ func TestEncoder(t *testing.T) {
 	}
 }
 
+func TestEncoder32(t *testing.T) {
+	type animal struct {
+		Name  string
+		Legs  int16
+		Tails int8
+	}
+
+	for _, tc := range typeTestCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var (
+				buf = new(bytes.Buffer)
+				err error
+				got = reflect.New(reflect.TypeOf(tc.want)).Elem()
+			)
+
+			enc := binser.NewEncoder32(buf)
+			err = enc.Encode(tc.want)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if got.Kind() == reflect.Map {
+				got.Set(reflect.MakeMap(got.Type()))
+			}
+
+			dec := binser.NewDecoder32(bytes.NewReader(buf.Bytes()))
+			err = dec.Decode(got.Addr().Interface())
+			if err != nil {
+				t.Fatalf("could not decode value: %v\n%s", err, hex.Dump(buf.Bytes()))
+			}
+
+			if got, want := got.Interface(), tc.want; !reflect.DeepEqual(got, want) {
+				t.Fatalf("round trip failed:\ngot= %#v (%T)\nwant=%#v (%T)", got, got, want, want)
+			}
+		})
+	}
+}
+
 type errWriter struct{}
 
 func (errWriter) Write(p []byte) (int, error) { return 0, io.ErrUnexpectedEOF }
@@ -106,6 +144,20 @@ func TestWBufferWriter(t *testing.T) {
 	want := []byte("hello")
 	buf := new(bytes.Buffer)
 	w := binser.NewWBuffer(buf)
+	_, err := w.Write(want)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if got := buf.Bytes(); !bytes.Equal(got, want) {
+		t.Fatalf("got=%q, want=%q", got, want)
+	}
+}
+
+func TestWBufferWriter32(t *testing.T) {
+	want := []byte("hello")
+	buf := new(bytes.Buffer)
+	w := binser.NewWBuffer32(buf)
 	_, err := w.Write(want)
 	if err != nil {
 		t.Fatal(err)
@@ -164,6 +216,95 @@ func TestEncoderCompatWithBoost(t *testing.T) {
 
 	dbg := new(bytes.Buffer)
 	cmd := exec.Command("c++", "-std=c++11", "-lboost_serialization", "-o", "bread", "read.cxx")
+	cmd.Dir = tmp
+	cmd.Stdout = dbg
+	cmd.Stderr = dbg
+	err = cmd.Run()
+	if err != nil {
+		t.Skipf("could not compile C++ Boost: %s", dbg.Bytes())
+		os.Remove(f.Name())
+		return
+	}
+
+	archive, err := ioutil.ReadFile(f.Name())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	out := new(bytes.Buffer)
+	cmd = exec.Command(filepath.Join(tmp, "bread"))
+	cmd.Stdin = bytes.NewReader(archive)
+	cmd.Stdout = out
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	if err != nil {
+		t.Fatalf("error reading back boost archive: %v\n%s", err, out.Bytes())
+	}
+	want := `bool: 0
+bool: 1
+int8_t: 0x11
+int16_t: 0x2222
+int32_t: 0x33333333
+int64_t: 0x44444444
+uint8_t: 0xff
+uint16_t: 0x2222
+uint32_t: 0x3333333
+uint64_t: 0x44444444
+float32: 2.2
+float64: 3.3
+complex64: 2.0 + 3.0i
+complex128: 4.0 + 9.0i
+[3]uint8: {0x11, 0x22, 0x33, }
+[]uint8: {0x11, 0x22, 0x33, 0xff, }
+[]uint8: {68, 65, 6c, 6c, 6f, }
+string: "hello"
+map: {{drei: trois}, {eins: un}, {zwei: deux}, }
+animal: {name: pet, legs: 4, tails: 1}
+animal: {name: pet, legs: 4, tails: 1}
+[]string: {s1, s2, s3, }
+[]animal: {{name: tiger, legs: 4, tails: 1}, {name: monkey, legs: 4, tails: 1}, }
+`
+	if got, want := out.Bytes(), []byte(want); !bytes.Equal(got, want) {
+		t.Fatalf("output differs:\ngot:\n%s\nwant:%s\n", got, want)
+	}
+
+	os.Remove(f.Name())
+}
+
+func TestEncoderCompatWithBoost32(t *testing.T) {
+	f, err := os.Create("testdata/check32.bin")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+
+	enc := binser.NewEncoder32(f)
+	for _, tc := range typeTestCases {
+		err := enc.Encode(tc.want)
+		if err != nil {
+			t.Fatalf("error encoding %q: %v", tc.name, err)
+		}
+	}
+
+	err = f.Close()
+	if err != nil {
+		t.Fatalf("error closing output stream: %v", err)
+	}
+
+	tmp, err := ioutil.TempDir("", "boostio-binser-")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.RemoveAll(tmp)
+
+	fname := filepath.Join(tmp, "read.cxx")
+	err = ioutil.WriteFile(fname, []byte(boostReadSrc), 0644)
+	if err != nil {
+		log.Fatalf("could not generate C++ source file: %v", err)
+	}
+
+	dbg := new(bytes.Buffer)
+	cmd := exec.Command("c++", "-m32", "-std=c++11", "-lboost_serialization", "-o", "bread", "read.cxx")
 	cmd.Dir = tmp
 	cmd.Stdout = dbg
 	cmd.Stderr = dbg

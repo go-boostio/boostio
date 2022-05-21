@@ -31,7 +31,7 @@ import (
 const (
 	magicHeader = "serialization::archive"
 
-	Version uint16 = 0x11 // Boost archive version
+	Version uint16 = 0x13 // Boost archive version
 )
 
 var (
@@ -43,11 +43,19 @@ var (
 )
 
 var (
-	zeroHdr Header
-	bserHdr = Header{
+	zeroHdr   Header
+	bser64Hdr = Header{
 		Version: Version,
 		Flags: binary.LittleEndian.Uint64([]byte{
 			0x4, 0x8, // size of int, long
+			0x4, 0x8, // size of float, double
+			0x1, 0x0, 0x0, 0x0, // little-endian
+		}),
+	}
+	bser32Hdr = Header{
+		Version: Version,
+		Flags: binary.LittleEndian.Uint64([]byte{
+			0x4, 0x4, // size of int, long
 			0x4, 0x8, // size of float, double
 			0x1, 0x0, 0x0, 0x0, // little-endian
 		}),
