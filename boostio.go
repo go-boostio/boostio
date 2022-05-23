@@ -4,5 +4,5 @@
 
 // Package boostio provides the general infrastructure to read and write
 // streams compatible with the C++ Boost Serialization library:
-//  - https://theboostcpplibraries.com/boost.serialization
+//   - https://theboostcpplibraries.com/boost.serialization
 package boostio // import "github.com/go-boostio/boostio"
