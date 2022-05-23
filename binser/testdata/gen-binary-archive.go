@@ -9,7 +9,6 @@ package main
 
 import (
 	"bytes"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -17,14 +16,14 @@ import (
 )
 
 func main() {
-	tmp, err := ioutil.TempDir("", "boostio-binser-")
+	tmp, err := os.MkdirTemp("", "boostio-binser-")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer os.RemoveAll(tmp)
 
 	fname := filepath.Join(tmp, "write.cxx")
-	err = ioutil.WriteFile(fname, []byte(src), 0644)
+	err = os.WriteFile(fname, []byte(src), 0644)
 	if err != nil {
 		log.Fatalf("could not generate C++ source file: %v", err)
 	}
@@ -57,7 +56,7 @@ func main() {
 		log.Fatalf("could not run C++ Boost program: %v", err)
 	}
 
-	err = ioutil.WriteFile("testdata/data.bin", archive.Bytes(), 0644)
+	err = os.WriteFile("testdata/data.bin", archive.Bytes(), 0644)
 	if err != nil {
 		log.Fatalf("could not save binary archive: %v", err)
 	}
@@ -72,7 +71,7 @@ func main() {
 		log.Fatalf("could not run C++ Boost program: %v", err)
 	}
 
-	err = ioutil.WriteFile("testdata/data32.bin", archive.Bytes(), 0644)
+	err = os.WriteFile("testdata/data32.bin", archive.Bytes(), 0644)
 	if err != nil {
 		log.Fatalf("could not save binary archive: %v", err)
 	}

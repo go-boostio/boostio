@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"encoding/hex"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -202,14 +201,14 @@ func TestEncoderCompatWithBoost(t *testing.T) {
 		t.Fatalf("error closing output stream: %v", err)
 	}
 
-	tmp, err := ioutil.TempDir("", "boostio-binser-")
+	tmp, err := os.MkdirTemp("", "boostio-binser-")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer os.RemoveAll(tmp)
 
 	fname := filepath.Join(tmp, "read.cxx")
-	err = ioutil.WriteFile(fname, []byte(boostReadSrc), 0644)
+	err = os.WriteFile(fname, []byte(boostReadSrc), 0644)
 	if err != nil {
 		log.Fatalf("could not generate C++ source file: %v", err)
 	}
@@ -226,7 +225,7 @@ func TestEncoderCompatWithBoost(t *testing.T) {
 		return
 	}
 
-	archive, err := ioutil.ReadFile(f.Name())
+	archive, err := os.ReadFile(f.Name())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -291,14 +290,14 @@ func TestEncoderCompatWithBoost32(t *testing.T) {
 		t.Fatalf("error closing output stream: %v", err)
 	}
 
-	tmp, err := ioutil.TempDir("", "boostio-binser-")
+	tmp, err := os.MkdirTemp("", "boostio-binser-")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer os.RemoveAll(tmp)
 
 	fname := filepath.Join(tmp, "read.cxx")
-	err = ioutil.WriteFile(fname, []byte(boostReadSrc), 0644)
+	err = os.WriteFile(fname, []byte(boostReadSrc), 0644)
 	if err != nil {
 		log.Fatalf("could not generate C++ source file: %v", err)
 	}
@@ -315,7 +314,7 @@ func TestEncoderCompatWithBoost32(t *testing.T) {
 		return
 	}
 
-	archive, err := ioutil.ReadFile(f.Name())
+	archive, err := os.ReadFile(f.Name())
 	if err != nil {
 		t.Fatal(err)
 	}

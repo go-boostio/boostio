@@ -10,7 +10,6 @@ import (
 	"bufio"
 	"bytes"
 	"flag"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -75,7 +74,7 @@ func main() {
 			log.Fatal(err)
 		}
 		if *cover {
-			profile, err := ioutil.ReadFile("profile.out")
+			profile, err := os.ReadFile("profile.out")
 			if err != nil {
 				log.Fatal(err)
 			}
