@@ -48,12 +48,6 @@ var typeTestCases = []struct {
 }
 
 func TestEncoder(t *testing.T) {
-	type animal struct {
-		Name  string
-		Legs  int16
-		Tails int8
-	}
-
 	for _, tc := range typeTestCases {
 		t.Run(tc.name, func(t *testing.T) {
 			var (
@@ -86,12 +80,6 @@ func TestEncoder(t *testing.T) {
 }
 
 func TestEncoder32(t *testing.T) {
-	type animal struct {
-		Name  string
-		Legs  int16
-		Tails int8
-	}
-
 	for _, tc := range typeTestCases {
 		t.Run(tc.name, func(t *testing.T) {
 			var (
