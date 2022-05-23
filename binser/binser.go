@@ -23,9 +23,8 @@ package binser // import "github.com/go-boostio/boostio/binser"
 
 import (
 	"encoding/binary"
+	"errors"
 	"reflect"
-
-	"github.com/pkg/errors"
 )
 
 const (
