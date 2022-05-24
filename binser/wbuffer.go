@@ -12,26 +12,25 @@ import (
 )
 
 type WBuffer struct {
-	w   io.Writer
-	err error
-	buf []byte
-
-	bit32 bool
+	w    io.Writer
+	err  error
+	buf  []byte
+	arch Arch
 
 	types registry
 }
 
 func NewWBuffer(w io.Writer) *WBuffer {
+	return newWBuffer(w, Arch64)
+}
+
+func newWBuffer(w io.Writer, arch Arch) *WBuffer {
 	return &WBuffer{
 		w:     w,
 		buf:   make([]byte, 8),
 		types: newRegistry(),
+		arch:  arch,
 	}
-}
-func NewWBuffer32(w io.Writer) *WBuffer {
-	WBuffer := NewWBuffer(w)
-	WBuffer.bit32 = true
-	return WBuffer
 }
 
 func (w *WBuffer) Err() error { return w.err }
@@ -61,15 +60,20 @@ func (w *WBuffer) Write(p []byte) (int, error) {
 	return n, w.err
 }
 
+func (w *WBuffer) writeLen(n int) error {
+	switch w.arch {
+	case 32:
+		return w.WriteU32(uint32(n))
+	default:
+		return w.WriteU64(uint64(n))
+	}
+}
+
 func (w *WBuffer) WriteString(v string) error {
 	if w.err != nil {
 		return w.err
 	}
-	if w.bit32 {
-		w.WriteU32(uint32(len(v)))
-	} else {
-		w.WriteU64(uint64(len(v)))
-	}
+	w.writeLen(len(v))
 	_, w.err = w.w.Write([]byte(v))
 	return w.err
 }

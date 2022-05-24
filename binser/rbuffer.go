@@ -13,10 +13,10 @@ import (
 
 // A RBuffer reads values from a Boost binary serialization stream.
 type RBuffer struct {
-	r     io.Reader
-	err   error
-	buf   []byte
-	bit32 bool
+	r    io.Reader
+	err  error
+	buf  []byte
+	arch Arch
 
 	types registry
 }
@@ -28,12 +28,6 @@ func NewRBuffer(r io.Reader) *RBuffer {
 		buf:   make([]byte, 8),
 		types: newRegistry(),
 	}
-}
-
-func NewRBuffer32(r io.Reader) *RBuffer {
-	RBuffer := NewRBuffer(r)
-	RBuffer.bit32 = true
-	return RBuffer
 }
 
 func (r *RBuffer) Err() error { return r.err }
@@ -49,7 +43,37 @@ func (r *RBuffer) ReadHeader() Header {
 		return hdr
 	}
 
-	v := r.ReadString()
+	// peek at header content.
+	// we need to handle the magicHeader string which starts with
+	// a length.
+	// but we don't know yet whether the archive is 32b or 64b.
+	// start with 8 bytes, and check whether we have already started to
+	// read some of the magicHeader.
+	r.load(8)
+	if r.err != nil {
+		r.err = ErrNotBoost
+		return hdr
+	}
+	var (
+		sz = len(magicHeader)
+		v  = string(r.buf[4:])
+	)
+	switch {
+	case v == magicHeader[:4]:
+		sz -= 4
+		r.arch = Arch32
+	default:
+		v = ""
+		r.arch = Arch64
+	}
+	raw := make([]byte, sz)
+	_, _ = r.Read(raw)
+	if r.err != nil {
+		r.err = ErrNotBoost
+		return hdr
+	}
+	v += string(raw)
+
 	if v != magicHeader {
 		r.err = ErrNotBoost
 		return hdr
@@ -87,13 +111,17 @@ func (r *RBuffer) Read(p []byte) (int, error) {
 	return n, r.err
 }
 
-func (r *RBuffer) ReadString() string {
-	var n int
-	if r.bit32 {
-		n = int(r.ReadU32())
-	} else {
-		n = int(r.ReadU64())
+func (r *RBuffer) readLen() int {
+	switch r.arch {
+	case 32:
+		return int(r.ReadU32())
+	default:
+		return int(r.ReadU64())
 	}
+}
+
+func (r *RBuffer) ReadString() string {
+	n := r.readLen()
 	if n == 0 || r.err != nil {
 		return ""
 	}

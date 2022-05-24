@@ -15,50 +15,32 @@ import (
 )
 
 func TestDecoder(t *testing.T) {
-	f, err := os.Open("testdata/data64.bin")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer f.Close()
-
-	dec := binser.NewDecoder(f)
-	for _, tc := range typeTestCases {
-		t.Run(tc.name, func(t *testing.T) {
-			rv := reflect.New(reflect.TypeOf(tc.want)).Elem()
-			if rv.Kind() == reflect.Map {
-				rv.Set(reflect.MakeMap(rv.Type()))
-			}
-			err := dec.Decode(rv.Addr().Interface())
+	for _, fname := range []string{
+		"testdata/data64.bin",
+		"testdata/data32.bin",
+	} {
+		t.Run(fname, func(t *testing.T) {
+			f, err := os.Open(fname)
 			if err != nil {
-				t.Fatalf("could not read %q: %v", tc.name, err)
+				t.Fatal(err)
 			}
-			if got, want := rv.Interface(), tc.want; !reflect.DeepEqual(got, want) {
-				t.Fatalf("got=%#v (%T)\nwant=%#v (%T)", got, got, want, want)
-			}
-		})
-	}
-}
+			defer f.Close()
 
-func TestDecoder32(t *testing.T) {
-	f, err := os.Open("testdata/data32.bin")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer f.Close()
-
-	dec := binser.NewDecoder32(f)
-	for _, tc := range typeTestCases {
-		t.Run(tc.name, func(t *testing.T) {
-			rv := reflect.New(reflect.TypeOf(tc.want)).Elem()
-			if rv.Kind() == reflect.Map {
-				rv.Set(reflect.MakeMap(rv.Type()))
-			}
-			err := dec.Decode(rv.Addr().Interface())
-			if err != nil {
-				t.Fatalf("could not read %q: %v", tc.name, err)
-			}
-			if got, want := rv.Interface(), tc.want; !reflect.DeepEqual(got, want) {
-				t.Fatalf("got=%#v (%T)\nwant=%#v (%T)", got, got, want, want)
+			dec := binser.NewDecoder(f)
+			for _, tc := range typeTestCases {
+				t.Run(tc.name, func(t *testing.T) {
+					rv := reflect.New(reflect.TypeOf(tc.want)).Elem()
+					if rv.Kind() == reflect.Map {
+						rv.Set(reflect.MakeMap(rv.Type()))
+					}
+					err := dec.Decode(rv.Addr().Interface())
+					if err != nil {
+						t.Fatalf("could not read %q: %v", tc.name, err)
+					}
+					if got, want := rv.Interface(), tc.want; !reflect.DeepEqual(got, want) {
+						t.Fatalf("got=%#v (%T)\nwant=%#v (%T)", got, got, want, want)
+					}
+				})
 			}
 		})
 	}
@@ -70,6 +52,7 @@ func TestInvalidArchive(t *testing.T) {
 		err error
 		val interface{}
 	}{
+		// 64b archives
 		{
 			raw: nil,
 			err: binser.ErrNotBoost,
@@ -134,31 +117,7 @@ func TestInvalidArchive(t *testing.T) {
 			err: io.ErrUnexpectedEOF,
 			val: new(uint16),
 		},
-	} {
-		t.Run("", func(t *testing.T) {
-			dec := binser.NewDecoder(bytes.NewReader(tc.raw))
-			err := dec.Decode(tc.val)
-			if !reflect.DeepEqual(err, tc.err) {
-				t.Fatalf("got=%#v, want=%#v", err, tc.err)
-			}
-		})
-	}
-}
-
-func TestInvalidArchive32(t *testing.T) {
-	for _, tc := range []struct {
-		raw []byte
-		err error
-		val interface{}
-	}{
-		{
-			raw: nil,
-			err: binser.ErrNotBoost,
-		},
-		{
-			raw: []byte("boost"),
-			err: binser.ErrNotBoost,
-		},
+		// 32b archives
 		{
 			raw: []byte{5, 0, 0, 0, 'b', 'o', 'o', 's', 't'},
 			err: binser.ErrNotBoost,
@@ -217,7 +176,7 @@ func TestInvalidArchive32(t *testing.T) {
 		},
 	} {
 		t.Run("", func(t *testing.T) {
-			dec := binser.NewDecoder32(bytes.NewReader(tc.raw))
+			dec := binser.NewDecoder(bytes.NewReader(tc.raw))
 			err := dec.Decode(tc.val)
 			if !reflect.DeepEqual(err, tc.err) {
 				t.Fatalf("got=%#v, want=%#v", err, tc.err)
@@ -266,20 +225,6 @@ var (
 func TestRBufferReader(t *testing.T) {
 	want := []byte("hello")
 	r := binser.NewRBuffer(bytes.NewReader(want))
-	got := make([]byte, len(want))
-	n, err := r.Read(got)
-	if err != nil {
-		t.Fatal(err)
-	}
-	got = got[:n]
-	if !bytes.Equal(got, want) {
-		t.Fatalf("got=%q, want=%q", got, want)
-	}
-}
-
-func TestRBufferReader32(t *testing.T) {
-	want := []byte("hello")
-	r := binser.NewRBuffer32(bytes.NewReader(want))
 	got := make([]byte, len(want))
 	n, err := r.Read(got)
 	if err != nil {

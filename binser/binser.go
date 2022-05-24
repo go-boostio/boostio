@@ -24,6 +24,8 @@ package binser // import "github.com/go-boostio/boostio/binser"
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
+	"io"
 	"reflect"
 
 	"github.com/go-boostio/boostio"
@@ -40,6 +42,37 @@ var (
 	ErrTypeNotSupported = errors.New("binser: type not supported")
 	ErrInvalidArrayLen  = errors.New("binser: invalid array type")
 )
+
+// Arch describes the size of on-disk pointers.
+type Arch byte
+
+const ptrSize = 32 << uintptr(^uintptr(0)>>63)
+
+const (
+	ArchHW = Arch(ptrSize) // ArchHW enables writing/reading "native-bits" archives (ie: using the architecture's size).
+	Arch32 = Arch(32)      // Arch32 enables writing/reading 32-bits archives
+	Arch64 = Arch(64)      // Arch64 enables writing/reading 64-bits archives
+)
+
+// NewEncoder creates a new encoder.
+func (a Arch) NewEncoder(w io.Writer) *Encoder {
+	enc := newEncoder(w, a)
+	enc.Header = a.Header()
+	return enc
+}
+
+func (a Arch) Header() Header {
+	switch a {
+	case 0:
+		return ArchHW.Header()
+	case Arch32:
+		return bser32Hdr
+	case Arch64:
+		return bser64Hdr
+	default:
+		panic(fmt.Errorf("binser: invalid architecture (size %d)", int(a)))
+	}
+}
 
 var (
 	zeroHdr   Header

@@ -7,6 +7,7 @@ package binser_test
 import (
 	"bytes"
 	"encoding/hex"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -48,66 +49,36 @@ var typeTestCases = []struct {
 }
 
 func TestEncoder(t *testing.T) {
-	for _, tc := range typeTestCases {
-		t.Run(tc.name, func(t *testing.T) {
-			var (
-				buf = new(bytes.Buffer)
-				err error
-				got = reflect.New(reflect.TypeOf(tc.want)).Elem()
-			)
+	for _, arch := range []binser.Arch{0, binser.ArchHW, binser.Arch32, binser.Arch64} {
+		for _, tc := range typeTestCases {
+			t.Run(fmt.Sprintf("%s-%d", tc.name, arch), func(t *testing.T) {
+				var (
+					buf = new(bytes.Buffer)
+					err error
+					got = reflect.New(reflect.TypeOf(tc.want)).Elem()
+				)
 
-			enc := binser.NewEncoder(buf)
-			err = enc.Encode(tc.want)
-			if err != nil {
-				t.Fatal(err)
-			}
+				enc := arch.NewEncoder(buf)
+				err = enc.Encode(tc.want)
+				if err != nil {
+					t.Fatal(err)
+				}
 
-			if got.Kind() == reflect.Map {
-				got.Set(reflect.MakeMap(got.Type()))
-			}
+				if got.Kind() == reflect.Map {
+					got.Set(reflect.MakeMap(got.Type()))
+				}
 
-			dec := binser.NewDecoder(bytes.NewReader(buf.Bytes()))
-			err = dec.Decode(got.Addr().Interface())
-			if err != nil {
-				t.Fatalf("could not decode value: %v\n%s", err, hex.Dump(buf.Bytes()))
-			}
+				dec := binser.NewDecoder(bytes.NewReader(buf.Bytes()))
+				err = dec.Decode(got.Addr().Interface())
+				if err != nil {
+					t.Fatalf("could not decode value: %v\n%s", err, hex.Dump(buf.Bytes()))
+				}
 
-			if got, want := got.Interface(), tc.want; !reflect.DeepEqual(got, want) {
-				t.Fatalf("round trip failed:\ngot= %#v (%T)\nwant=%#v (%T)", got, got, want, want)
-			}
-		})
-	}
-}
-
-func TestEncoder32(t *testing.T) {
-	for _, tc := range typeTestCases {
-		t.Run(tc.name, func(t *testing.T) {
-			var (
-				buf = new(bytes.Buffer)
-				err error
-				got = reflect.New(reflect.TypeOf(tc.want)).Elem()
-			)
-
-			enc := binser.NewEncoder32(buf)
-			err = enc.Encode(tc.want)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			if got.Kind() == reflect.Map {
-				got.Set(reflect.MakeMap(got.Type()))
-			}
-
-			dec := binser.NewDecoder32(bytes.NewReader(buf.Bytes()))
-			err = dec.Decode(got.Addr().Interface())
-			if err != nil {
-				t.Fatalf("could not decode value: %v\n%s", err, hex.Dump(buf.Bytes()))
-			}
-
-			if got, want := got.Interface(), tc.want; !reflect.DeepEqual(got, want) {
-				t.Fatalf("round trip failed:\ngot= %#v (%T)\nwant=%#v (%T)", got, got, want, want)
-			}
-		})
+				if got, want := got.Interface(), tc.want; !reflect.DeepEqual(got, want) {
+					t.Fatalf("round trip failed:\ngot= %#v (%T)\nwant=%#v (%T)", got, got, want, want)
+				}
+			})
+		}
 	}
 }
 
@@ -141,20 +112,6 @@ func TestWBufferWriter(t *testing.T) {
 	}
 }
 
-func TestWBufferWriter32(t *testing.T) {
-	want := []byte("hello")
-	buf := new(bytes.Buffer)
-	w := binser.NewWBuffer32(buf)
-	_, err := w.Write(want)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if got := buf.Bytes(); !bytes.Equal(got, want) {
-		t.Fatalf("got=%q, want=%q", got, want)
-	}
-}
-
 func TestEncoderInvalidType(t *testing.T) {
 	var iface interface{} = 42
 
@@ -169,14 +126,14 @@ func TestEncoderInvalidType(t *testing.T) {
 	}
 }
 
-func TestEncoderCompatWithBoost(t *testing.T) {
-	f, err := os.Create("testdata/check.bin")
+func TestEncoderCompatWithBoost64(t *testing.T) {
+	f, err := os.Create("testdata/check64.bin")
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer f.Close()
 
-	enc := binser.NewEncoder(f)
+	enc := binser.Arch64.NewEncoder(f)
 	for _, tc := range typeTestCases {
 		err := enc.Encode(tc.want)
 		if err != nil {
@@ -265,7 +222,7 @@ func TestEncoderCompatWithBoost32(t *testing.T) {
 	}
 	defer f.Close()
 
-	enc := binser.NewEncoder32(f)
+	enc := binser.Arch32.NewEncoder(f)
 	for _, tc := range typeTestCases {
 		err := enc.Encode(tc.want)
 		if err != nil {
