@@ -15,7 +15,7 @@ import (
 )
 
 func ExampleDecoder() {
-	f, err := os.Open("testdata/data.bin")
+	f, err := os.Open("testdata/data64.bin")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -85,7 +85,7 @@ func ExampleDecoder32() {
 }
 
 func ExampleRBuffer() {
-	f, err := os.Open("testdata/data.bin")
+	f, err := os.Open("testdata/data64.bin")
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -15,7 +15,7 @@ import (
 )
 
 func TestDecoder(t *testing.T) {
-	f, err := os.Open("testdata/data.bin")
+	f, err := os.Open("testdata/data64.bin")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -311,7 +311,7 @@ func TestInvalidArray(t *testing.T) {
 }
 
 func TestDecoderInvalidType(t *testing.T) {
-	f, err := os.Open("testdata/data.bin")
+	f, err := os.Open("testdata/data64.bin")
 	if err != nil {
 		t.Fatal(err)
 	}

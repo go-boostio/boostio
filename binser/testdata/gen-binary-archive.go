@@ -9,41 +9,53 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 )
 
 func main() {
+	for _, arch := range []int{
+		64,
+		32, // needs cross-compilation headers.
+	} {
+		err := build(arch)
+		if err != nil {
+			log.Fatalf("%+v", err)
+		}
+	}
+}
+
+func build(arch int) error {
+	switch arch {
+	case 32, 64:
+		// ok.
+	default:
+		return fmt.Errorf("invalid arch %d", arch)
+	}
+
 	tmp, err := os.MkdirTemp("", "boostio-binser-")
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("could not create tmp dir: %w", err)
 	}
 	defer os.RemoveAll(tmp)
 
 	fname := filepath.Join(tmp, "write.cxx")
 	err = os.WriteFile(fname, []byte(src), 0644)
 	if err != nil {
-		log.Fatalf("could not generate C++ source file: %v", err)
+		return fmt.Errorf("could not generate C++ source file: %w", err)
 	}
 
-	cmd := exec.Command("c++", "-lboost_serialization", "-o", "bwrite", "write.cxx")
+	cmd := exec.Command("c++", "-m"+strconv.Itoa(arch), "-lboost_serialization", "-o", "bwrite", "write.cxx")
 	cmd.Dir = tmp
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err = cmd.Run()
 	if err != nil {
-		log.Fatalf("could not build C++ Boost program: %v", err)
-	}
-
-	cmd = exec.Command("c++", "-m32", "-lboost_serialization", "-o", "bwrite32", "write.cxx")
-	cmd.Dir = tmp
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err = cmd.Run()
-	if err != nil {
-		log.Fatalf("could not build C++ Boost program: %v", err)
+		return fmt.Errorf("could not build C++ Boost program: %w", err)
 	}
 
 	archive := new(bytes.Buffer)
@@ -53,28 +65,15 @@ func main() {
 	cmd.Stderr = os.Stderr
 	err = cmd.Run()
 	if err != nil {
-		log.Fatalf("could not run C++ Boost program: %v", err)
+		return fmt.Errorf("could not run C++ Boost program: %w", err)
 	}
 
-	err = os.WriteFile("testdata/data.bin", archive.Bytes(), 0644)
+	err = os.WriteFile(fmt.Sprintf("testdata/data%d.bin", arch), archive.Bytes(), 0644)
 	if err != nil {
-		log.Fatalf("could not save binary archive: %v", err)
+		return fmt.Errorf("could not save binary archive: %w", err)
 	}
 
-	archive = new(bytes.Buffer)
-	cmd = exec.Command("./bwrite32")
-	cmd.Dir = tmp
-	cmd.Stdout = archive
-	cmd.Stderr = os.Stderr
-	err = cmd.Run()
-	if err != nil {
-		log.Fatalf("could not run C++ Boost program: %v", err)
-	}
-
-	err = os.WriteFile("testdata/data32.bin", archive.Bytes(), 0644)
-	if err != nil {
-		log.Fatalf("could not save binary archive: %v", err)
-	}
+	return nil
 }
 
 const src = `
