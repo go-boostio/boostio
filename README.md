@@ -1,8 +1,10 @@
 # boostio
 
-[![GoDoc](https://godoc.org/github.com/go-boostio/boostio?status.svg)](https://godoc.org/github.com/go-boostio/boostio)
-[![Build Status](https://travis-ci.org/go-boostio/boostio.svg?branch=master)](https://travis-ci.org/go-boostio/boostio)
+[![GitHub release](https://img.shields.io/github/release/go-boostio/boostio.svg)](https://github.com/go-boostio/boostio/releases)
+[![GoDoc](https://godoc.org/github.com/go-boostio/boostio?status.svg)](https://pkg.go.dev/github.com/go-boostio/boostio)
+[![CI](https://github.com/go-boostio/boostio/workflows/CI/badge.svg)](https://github.com/go-boostio/boostio/actions)
 [![codecov](https://codecov.io/gh/go-boostio/boostio/branch/master/graph/badge.svg)](https://codecov.io/gh/go-boostio/boostio)
+[![License](https://img.shields.io/badge/License-BSD--3-blue.svg)](https://github.com/go-boostio/boostio/blob/main/LICENSE)
 
 `boostio` is a reverse engineering of [Boost Serialization](https://theboostcpplibraries.com/boost.serialization).
 
