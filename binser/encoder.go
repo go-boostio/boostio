@@ -14,6 +14,7 @@ import (
 type Encoder struct {
 	w      *WBuffer
 	Header Header
+	bit32  bool
 
 	hdr sync.Once
 }
@@ -27,9 +28,18 @@ func NewEncoder(w io.Writer) *Encoder {
 	return &Encoder{w: ww}
 }
 
+func NewEncoder32(w io.Writer) *Encoder {
+	ww := NewWBuffer32(w)
+	return &Encoder{w: ww, bit32: true}
+}
+
 func (enc *Encoder) writeHeader() {
 	if enc.Header == zeroHdr {
-		enc.Header = bserHdr
+		if enc.bit32 {
+			enc.Header = bser32Hdr
+		} else {
+			enc.Header = bser64Hdr
+		}
 	}
 
 	enc.w.WriteString(magicHeader)
@@ -87,7 +97,11 @@ func (enc *Encoder) Encode(v interface{}) error {
 		rt := rv.Type()
 		enc.w.WriteTypeDescr(rt)
 		n := rv.Len()
-		enc.w.WriteU64(uint64(n))
+		if enc.bit32 {
+			enc.w.WriteU32(uint32(n))
+		} else {
+			enc.w.WriteU64(uint64(n))
+		}
 		if et := rt.Elem(); !isCxxBoostBuiltin(et.Kind()) {
 			enc.w.WriteU32(0) // FIXME(sbinet): what is this?
 		}
@@ -99,7 +113,11 @@ func (enc *Encoder) Encode(v interface{}) error {
 		rt := rv.Type()
 		enc.w.WriteTypeDescr(rt)
 		n := int(rv.Len())
-		enc.w.WriteU64(uint64(n))
+		if enc.bit32 {
+			enc.w.WriteU32(uint32(n))
+		} else {
+			enc.w.WriteU64(uint64(n))
+		}
 		for i := 0; i < n; i++ {
 			e := rv.Index(i)
 			enc.Encode(e.Interface()) // FIXME(sbinet): do not go through Decode each time
@@ -107,7 +125,12 @@ func (enc *Encoder) Encode(v interface{}) error {
 	case reflect.Map:
 		rt := rv.Type()
 		enc.w.WriteTypeDescr(rt)
-		enc.w.WriteU64(uint64(rv.Len()))
+		n := int(rv.Len())
+		if enc.bit32 {
+			enc.w.WriteU32(uint32(n))
+		} else {
+			enc.w.WriteU64(uint64(n))
+		}
 		enc.w.WriteU64(0) // FIXME(sbinet): what is this ?
 		enc.w.WriteU8(0)  // FIXME(sbinet): ditto ?
 		keys := rv.MapKeys()

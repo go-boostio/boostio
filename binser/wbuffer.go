@@ -16,6 +16,8 @@ type WBuffer struct {
 	err error
 	buf []byte
 
+	bit32 bool
+
 	types registry
 }
 
@@ -25,6 +27,11 @@ func NewWBuffer(w io.Writer) *WBuffer {
 		buf:   make([]byte, 8),
 		types: newRegistry(),
 	}
+}
+func NewWBuffer32(w io.Writer) *WBuffer {
+	WBuffer := NewWBuffer(w)
+	WBuffer.bit32 = true
+	return WBuffer
 }
 
 func (w *WBuffer) Err() error { return w.err }
@@ -58,7 +65,11 @@ func (w *WBuffer) WriteString(v string) error {
 	if w.err != nil {
 		return w.err
 	}
-	w.WriteU64(uint64(len(v)))
+	if w.bit32 {
+		w.WriteU32(uint32(len(v)))
+	} else {
+		w.WriteU64(uint64(len(v)))
+	}
 	_, w.err = w.w.Write([]byte(v))
 	return w.err
 }
